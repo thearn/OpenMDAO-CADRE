@@ -27,11 +27,17 @@ NTIME = 2
 
 cadre = set_as_top(Assembly())
 
-cadre.add('comp', Attitude_Attitude(NTIME))
-inputs = ['comp.r_e2b_I']
-outputs = ['comp.O_RI']
-shape = cadre.comp.r_e2b_I.shape
-cadre.comp.r_e2b_I = np.random.random(shape)*1e5
+cadre.add('comp', Sun_PositionSpherical(NTIME))
+inputs = ['comp.r_e2s_B']
+outputs = ['comp.azimuth', 'comp.elevation']
+shape = cadre.comp.r_e2s_B.shape
+cadre.comp.r_e2s_B = np.random.random(shape)
+
+#cadre.add('comp', Attitude_Attitude(NTIME))
+#inputs = ['comp.r_e2b_I']
+#outputs = ['comp.O_RI']
+#shape = cadre.comp.r_e2b_I.shape
+#cadre.comp.r_e2b_I = np.random.random(shape)*1e5
 
 #cadre.add('comp', Power_CellVoltage(NTIME))
 #data = pickle.load(open("data1346.pkl", 'rb'))
@@ -110,7 +116,7 @@ cadre.comp.r_e2b_I = np.random.random(shape)*1e5
 #cadre.comp.LOS = np.random.random(shape)
 #shape = cadre.comp.P_comm.shape
 #cadre.comp.P_comm = np.random.random(shape)
-#inputs = ['comp.exposedArea', 'comp.cellInstd', 
+#inputs = ['comp.exposedArea', 'comp.cellInstd',
           #'comp.LOS', 'comp.P_comm']
 ##inputs = ['ThermalTemperature.exposedArea', 'ThermalTemperature.LOS', 'ThermalTemperature.P_comm']
 ##inputs = ['ThermalTemperature.cellInstd']
@@ -121,19 +127,19 @@ cadre.comp.h = .01
 cadre.run()
 #for name in outputs:
 #    print cadre.get(name)
-    
+
 cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
 #cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
 
 
 
 cadre.driver.update_parameters()
-cadre.driver.workflow.config_changed()        
+cadre.driver.workflow.config_changed()
 Jn = cadre.driver.workflow.calc_gradient(inputs=inputs,
                                          outputs=outputs,
                                          fd=True)
 cadre.driver.update_parameters()
-cadre.driver.workflow.config_changed()        
+cadre.driver.workflow.config_changed()
 Jf = cadre.driver.workflow.calc_gradient(inputs=inputs,
                                          outputs=outputs)
 diff = abs(Jf - Jn)
