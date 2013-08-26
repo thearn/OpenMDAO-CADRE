@@ -154,13 +154,16 @@ class ReactionWheel_Dynamics(rk4.RK4):
 
     def __init__(self, n_times):
         super(ReactionWheel_Dynamics, self).__init__()
-        #self.time_step = time_step
 
-        self.add('w_B', Array(np.zeros((3,n_times)), size=(3,n_times), dtype=np.float, iotype='in'))
-        self.add('T_RW', Array(np.zeros((3,n_times)), size=(3,n_times), dtype=np.float, iotype='in'))
+        self.add('w_B', Array(np.zeros((3, n_times)), size=(3, n_times),
+                              dtype=np.float, iotype='in'))
+        self.add('T_RW', Array(np.zeros((3, n_times)), size=(3, n_times),
+                               dtype=np.float, iotype='in'))
 
-        self.add('w_RW', Array(np.zeros((3,n_times)), size=(3,n_times), dtype=np.float, iotype='out'))
-        self.add('w_RW0', Array(np.zeros((3,)), size=(3,), dtype=np.float, iotype='in'))
+        self.add('w_RW', Array(np.zeros((3, n_times)), size=(3, n_times),
+                               dtype=np.float, iotype='out'))
+        self.add('w_RW0', Array(np.zeros((3,)), size=(3,),
+                                dtype=np.float, iotype='in'))
 
         self.state_var = 'w_RW'
         self.init_state_var = 'w_RW0'

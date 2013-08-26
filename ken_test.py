@@ -23,15 +23,15 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 2
+NTIME = 4
 
 cadre = set_as_top(Assembly())
 
-cadre.add('comp', Sun_PositionSpherical(NTIME))
-inputs = ['comp.r_e2s_B']
-outputs = ['comp.azimuth', 'comp.elevation']
-shape = cadre.comp.r_e2s_B.shape
-cadre.comp.r_e2s_B = np.random.random(shape)
+#cadre.add('comp', Sun_PositionSpherical(NTIME))
+#inputs = ['comp.r_e2s_B']
+#outputs = ['comp.azimuth', 'comp.elevation']
+#shape = cadre.comp.r_e2s_B.shape
+#cadre.comp.r_e2s_B = np.random.random(shape)
 
 #cadre.add('comp', Attitude_Attitude(NTIME))
 #inputs = ['comp.r_e2b_I']
@@ -65,15 +65,15 @@ cadre.comp.r_e2s_B = np.random.random(shape)
 #inputs = ['comp.Isetpt', 'comp.V_sol']
 #outputs = ['comp.P_sol']
 
-#cadre.add('comp', ReactionWheel_Dynamics(NTIME))
-#shape = cadre.comp.w_B.shape
-#cadre.comp.w_B = np.random.random(shape)*1e-4
-#shape = cadre.comp.T_RW.shape
-#cadre.comp.T_RW = np.random.random(shape)*1e-9
-#shape = cadre.comp.w_RW0.shape
-##cadre.comp.w_RW0 = np.random.random(shape)
-#inputs = ['comp.T_RW']
-#outputs = ['comp.w_RW']
+cadre.add('comp', ReactionWheel_Dynamics(NTIME))
+shape = cadre.comp.w_B.shape
+cadre.comp.w_B = np.random.random(shape)*1e-4
+shape = cadre.comp.T_RW.shape
+cadre.comp.T_RW = np.random.random(shape)*1e-9
+shape = cadre.comp.w_RW0.shape
+#cadre.comp.w_RW0 = np.random.random(shape)
+inputs = ['comp.T_RW']
+outputs = ['comp.w_RW']
 
 #cadre.add('comp', BatteryPower(NTIME))
 #shape = cadre.comp.SOC.shape
@@ -128,8 +128,8 @@ cadre.run()
 #for name in outputs:
 #    print cadre.get(name)
 
-cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
-#cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
+#cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
+cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
 
 
 
