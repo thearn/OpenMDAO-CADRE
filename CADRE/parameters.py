@@ -37,10 +37,6 @@ class BsplineParameters(Component):
         self.add('Isetpt',Array(0.2*np.ones((12,n)), size=(12,n), dtype=float,
                                 iotype='out'))
 
-        #self.add('t', Array(np.zeros((n,), order='F'), size=(n,),
-        #                    dtype=np.float, iotype="out"))
-        #self.add("LD", Float(0., iotype="out"))
-
     def execute(self):
         #self.h = (self.t2 - self.t1)/(self.n - 1)
         self.P_comm = self.B.dot(self.CP_P_comm)
