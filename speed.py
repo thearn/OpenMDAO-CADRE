@@ -23,41 +23,20 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 4
+NTIME = 1500
 
 cadre = set_as_top(Assembly())
 
-cadre.add('comp', Attitude_Attitude(NTIME))
-
-inputs = ['comp.r_e2b_I']
-outputs = ['comp.O_RI']
-
-for i_name in inputs: 
-    var = cadre.get(i_name)
-    val = np.random.random(var.shape)
-    cadre.set(i_name, val)
-
+cadre.add('comp', Attitude_Roll(NTIME))
+inputs = ['comp.Gamma']
+outputs = ['comp.O_BR']
+shape = cadre.comp.Gamma.shape
+cadre.comp.Gamma = np.random.random(shape)
 
 cadre.driver.workflow.add('comp')
 cadre.comp.h = .01
-cadre.run()
-#cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
-cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
-
-
-
-cadre.driver.update_parameters()
-cadre.driver.workflow.config_changed()        
-Jn = cadre.driver.workflow.calc_gradient(inputs=inputs,
-                                         outputs=outputs,
-                                         fd=True)
-cadre.driver.update_parameters()
-cadre.driver.workflow.config_changed()        
-Jf = cadre.driver.workflow.calc_gradient(inputs=inputs,
-                                         outputs=outputs)
-diff = abs(Jf - Jn)
-print diff.max()
-
-
-diff = np.nan_to_num(abs(Jf - Jn)/Jn)
-print diff.max()
+from time import time
+tzero = time()
+for i in range(50):
+    cadre.comp.execute()
+print "Execution time", time()-tzero
