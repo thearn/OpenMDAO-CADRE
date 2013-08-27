@@ -3,24 +3,19 @@ from openmdao.main.datatypes.api import Float, Array, Int
 import numpy as np
 from CADRE_assembly import CADRE
 from pyopt_driver import pyopt_driver
+from openmdao.lib.drivers.api import CONMINdriver
 
 class CADRE_Optimization(Assembly):
     
-    def __init__(self, n=3, m=300):
+    def __init__(self, n=1500, m=300):
         super(CADRE_Optimization, self).__init__()
         
-        npts = 6
+        npts = 1
         #add SNOPT driver
         self.add("driver", pyopt_driver.pyOptDriver())
         self.driver.optimizer = "SNOPT"
         
-        # Parameters with values common to all analysis points
-        self.add("cellInstd", Array(np.ones((7,12)), size=(7,12), dtype=np.float, 
-            iotype="in", desc="Cell/Radiator indication", low=0, high=1)
-        )
-        self.add("finAngle", Float(0., iotype="in", copy=None))
-        self.add("antAngle", Float(0., iotype="in", copy=None))
-        common_parameters = ["cellInstd", "finAngle", "antAngle"]
+        #self.add("driver", CONMINdriver())
         
         # Raw data to load
         solar_raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
@@ -51,8 +46,7 @@ class CADRE_Optimization(Assembly):
                                   comm_raw, power_raw))
             self.get(aname).set("LD", LDs[i])
             self.get(aname).set("r_e2b_I0", r_e2b_I0s[i])
-            for param in common_parameters:
-                self.connect(param, '.'.join([aname, param]))
+            
             """
             # add parameters to driver
             for k in xrange(12):
@@ -69,7 +63,7 @@ class CADRE_Optimization(Assembly):
                 print "adding parameter: CP_comm",k
                 param = ''.join(["pt",str(i),".CP_P_comm[",str(k),"]"])
                 self.driver.add_parameter(param, low=0.1, high=25.)             
-            """
+            
             param = ''.join(["pt",str(i),".iSOC[0]"])
             self.driver.add_parameter(param, low=0.2, high=1.)   
             
@@ -87,21 +81,25 @@ class CADRE_Optimization(Assembly):
             self.driver.add_constraint(constr)  
             
             constr = ''.join(["pt",str(i),".BatterySOC.SOC[0] = pt",
-                              str(i),".BatterySOC.SOC[-1]"])
-            
+                              str(i),".BatterySOC.SOC[-1]"])    
             self.driver.add_constraint(constr)  
-        
+            """
+        """
         #add rest of parameters to driver
         for i in xrange(7):
             print "adding constraint: Cellinstd",i
             for k in xrange(12):
-                param = ''.join(["cellInstd[",str(i),"][",str(k),"]"])
+                param = [''.join(["pt",str(j),".cellInstd[",str(i),
+                "][",str(k),"]"]) for j in xrange(npts)]
                 self.driver.add_parameter(param, low=0, high=1)
-        self.driver.add_parameter("finAngle", low=0, high=np.pi/2.)
-        self.driver.add_parameter("antAngle", low=0, high=np.pi)
+        """
+        finangles = ["pt"+str(i)+".finAngle" for i in xrange(npts)]
+        antangles = ["pt"+str(i)+".antAngle" for i in xrange(npts)]
+        self.driver.add_parameter(finangles, low=0, high=np.pi/2.)
+        self.driver.add_parameter(antangles, low=0, high=np.pi)
         
         #add objective
-        obj = ''.join([''.join(["-sum(pt",str(i),".Data)"]) for i in xrange(npts)])
+        obj = ''.join([''.join(["-pt",str(i),".Data[0,-1]"]) for i in xrange(npts)])
         self.driver.add_objective(obj)
         
 if __name__ == "__main__":

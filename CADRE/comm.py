@@ -38,8 +38,7 @@ class Comm_DataDownloaded(rk4.RK4):
 
     def df_dx(self, external, state):
         return self.dfdx
-
-   
+    
 
 class Comm_AntRotation(Component):
     
