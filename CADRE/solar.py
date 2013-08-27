@@ -2,11 +2,13 @@
 
 from openmdao.main.api import Component
 from openmdao.lib.datatypes.api import Float, Array
-from kinematics import fixangles
+from CADRE.kinematics import fixangles
 from MBI import MBI
 
 import numpy as np
 
+# Allow non-standard variable names for scientific calc
+# pylint: disable-msg=C0103
 
 class Solar_ExposedArea(Component):
     '''Exposed area calculation for a given solar cell
@@ -17,32 +19,32 @@ class Solar_ExposedArea(Component):
        e: elevation [0,180]
        LOS: line of sight with the sun [0,1]
     '''
-    
+
     # Inputs
     finAngle = Float(0., iotype="in", copy=None)
-    
+
     def __init__(self, n, raw1=None, raw2=None):
         super(Solar_ExposedArea, self).__init__()
 
-        if raw1 is None: 
+        if raw1 is None:
             raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
-        if raw2 is None: 
+        if raw2 is None:
             raw2 = np.loadtxt("CADRE/data/Solar/Area_all.txt")
-        
+
         self.n = n
         self.nc = 7
         self.np = 12
 
         # Inputs
-        self.add('azimuth', Array(np.zeros((n,)), size=(n,), dtype=np.float, 
+        self.add('azimuth', Array(np.zeros((n,)), size=(n,), dtype=np.float,
                                   iotype='in'))
-        self.add('elevation', Array(np.zeros((n,)), size=(n,), dtype=np.float, 
+        self.add('elevation', Array(np.zeros((n,)), size=(n,), dtype=np.float,
                                     iotype='in'))
-        
+
         # Outputs
-        self.add('exposedArea', Array(np.zeros((self.nc, self.np, self.n)), 
-                                      size=(self.nc, self.np, self.n), 
-                                      dtype=np.float, iotype='out', 
+        self.add('exposedArea', Array(np.zeros((self.nc, self.np, self.n)),
+                                      size=(self.nc, self.np, self.n),
+                                      dtype=np.float, iotype='out',
                                       low=-5e-3, high=1.834e-1))
 
         self.na = 10
@@ -59,7 +61,7 @@ class Solar_ExposedArea(Component):
         for i in range(self.nz):
             azimuth[i] = raw1[index]
             index += 1
-            
+
         index -= 1
         azimuth[self.nz-1] = 2.0*np.pi
         for i in range(self.ne):
@@ -83,19 +85,19 @@ class Solar_ExposedArea(Component):
                                                             self.nz,
                                                             self.ne))
                 counter += 1
-                
-        self.MBI = MBI(data, [angle, azimuth, elevation], 
-                             [4, 10, 8], 
+
+        self.MBI = MBI(data, [angle, azimuth, elevation],
+                             [4, 10, 8],
                              [4, 4, 4])
-        
+
         self.x = np.zeros((self.n, 3))
         self.Jfin = None
         self.Jaz = None
         self.Jel = None
-    
+
     def setx(self):
         """ Sets our state array"""
-        
+
         result = fixangles(self.n, self.azimuth, self.elevation)
         self.x[:, 0] = self.finAngle
         self.x[:, 1] = result[0]
@@ -103,21 +105,24 @@ class Solar_ExposedArea(Component):
 
     def linearize(self):
         """ Calculate and save derivatives. (i.e., Jacobian) """
-        
-        self.Jfin = self.MBI.evaluate(self.x, 1).reshape(self.n, 7, 12, order='F')
-        self.Jaz = self.MBI.evaluate(self.x, 2).reshape(self.n, 7, 12, order='F')
-        self.Jel = self.MBI.evaluate(self.x, 3).reshape(self.n, 7, 12, order='F')
+
+        self.Jfin = self.MBI.evaluate(self.x, 1).reshape(self.n, 7, 12,
+                                                         order='F')
+        self.Jaz = self.MBI.evaluate(self.x, 2).reshape(self.n, 7, 12,
+                                                        order='F')
+        self.Jel = self.MBI.evaluate(self.x, 3).reshape(self.n, 7, 12,
+                                                        order='F')
 
     def execute(self):
         """ Calculate output. """
-        
+
         self.setx()
         P = self.MBI.evaluate(self.x).T
         self.exposedArea = P.reshape(7, 12, self.n, order='F')
 
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
-        
+
         for c in range(7):
             if 'finAngle' in arg:
                 result['exposedArea'][c, :, :] += \
