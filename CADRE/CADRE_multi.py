@@ -12,10 +12,10 @@ class CADRE_Optimization(Assembly):
         
         npts = 1
         #add SNOPT driver
-        self.add("driver", pyopt_driver.pyOptDriver())
-        self.driver.optimizer = "SNOPT"
+        #self.add("driver", pyopt_driver.pyOptDriver())
+        #self.driver.optimizer = "SNOPT"
         
-        #self.add("driver", CONMINdriver())
+        self.add("driver", CONMINdriver())
         
         # Raw data to load
         solar_raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
