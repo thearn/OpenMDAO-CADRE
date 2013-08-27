@@ -81,12 +81,15 @@ class ThermalTemperature(RK4):
     def f_dot(self, external, state):
 
         # revised implementation from ThermalTemperature.f90
-        exposedArea = external[:84]
+        exposedArea = external[:84].reshape(7, 12)
         LOS = external[84]
         P_comm = external[85]
-        cellInstd = external[86:]
+        cellInstd = external[86:].reshape(7, 12)
 
         f = np.zeros((5, ))
+
+        alpha = alpha_c*cellInstd + alpha_r - alpha_r*cellInstd
+        eps = eps_c*cellInstd + eps_r - eps_r*cellInstd
 
         # Panels
         for p in range(0, 12):
@@ -102,19 +105,12 @@ class ThermalTemperature(RK4):
                 f_i = (p+1)%4
                 m = m_f
                 cp = cp_f
-
+            
             # Cells
-            for c in range(0, 7):
-
-                idat = p + c*12
-                A_exp = exposedArea[idat]
-                w = cellInstd[idat]
-
-                alpha = alpha_c*w + alpha_r*(1-w)
-                eps = eps_c*w + eps_r*(1-w)
-
-                f[f_i] += alpha * q_sol * A_exp * LOS / m / cp
-                f[f_i] -= eps * K * A_T * state[f_i]**4 / m / cp
+            fact1 = q_sol*LOS/(m*cp)
+            fact2 = K*A_T*state[f_i]**4/(m*cp)
+            f[f_i] += np.sum(alpha[:, p] * exposedArea[:, p]) * fact1
+            f[f_i] -= np.sum(eps[:, p]) * fact2
 
         f[4] += 4.0 * P_comm / m_b / cp_b
 
@@ -124,7 +120,8 @@ class ThermalTemperature(RK4):
     def df_dy(self, external, state):
 
         # revised implementation from ThermalTemperature.f90
-        cellInstd = external[86:]
+        cellInstd = external[86:].reshape(7, 12)
+        eps = eps_c*cellInstd + eps_r - eps_r*cellInstd
 
         dfdy = np.zeros((5, 5))
 
@@ -144,23 +141,22 @@ class ThermalTemperature(RK4):
                 cp = cp_f
 
             # Cells
-            for c in range (0, 7):
-                idat = p + c*12
-                w = cellInstd[idat]
-                eps = eps_c*w + eps_r*(1-w)
-
-                dfdy[f_i, f_i] -= 4.0 * eps * K * A_T * state[f_i]**3 / m / cp
+            fact = 4.0*K*A_T*state[f_i]**3/(m*cp)
+            dfdy[f_i, f_i] -= np.sum(eps) * fact
 
         return dfdy
 
     def df_dx(self, external, state):
 
         # revised implementation from ThermalTemperature.f90
-        exposedArea = external[:84]
+        exposedArea = external[:84].reshape(7, 12)
         LOS = external[84]
-        cellInstd = external[86:]
+        cellInstd = external[86:].reshape(7, 12)
 
         dfdx = np.zeros((5, 170))
+        alpha = alpha_c*cellInstd + alpha_r - alpha_r*cellInstd
+        dalpha_dw = alpha_c - alpha_r
+        deps_dw = eps_c - eps_r
 
         # Panels
         for p in range(0, 12):
@@ -178,22 +174,14 @@ class ThermalTemperature(RK4):
                 cp = cp_f
 
             # Cells
-            for c in range (0, 7):
-                idat = p + c*12
-                A_exp = exposedArea[idat]
-                w = cellInstd[idat]
-                iA = idat
-                iw = 86 + idat
-
-                alpha = alpha_c*w + alpha_r*(1-w)
-
-                dalpha_dw = alpha_c - alpha_r
-                deps_dw = eps_c - eps_r
-
-                dfdx[f_i, iA] += alpha * q_sol * LOS / m / cp
-                dfdx[f_i, iw] += dalpha_dw * q_sol * A_exp * LOS / m / cp
-                dfdx[f_i, iw] -= deps_dw * K * A_T * state[f_i]**4 / m / cp
-                dfdx[f_i, 84] += alpha * q_sol * A_exp / m / cp
+            fact3 = q_sol/(m*cp)
+            fact1 = fact3*LOS
+            fact2 = K*A_T*state[f_i]**4/(m*cp)
+                
+            dfdx[f_i, p:p+84:12] += alpha[:, p] * fact1
+            dfdx[f_i, p+86:p+170:12] += dalpha_dw * exposedArea[:, p] * fact1 - \
+                                          deps_dw * fact2
+            dfdx[f_i, 84] += np.sum(alpha[:, p] * exposedArea[:, p]) * fact3
 
         dfdx[4, 85] += 4.0 / m_b / cp_b
 
