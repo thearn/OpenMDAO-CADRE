@@ -38,8 +38,7 @@ class Comm_DataDownloaded(rk4.RK4):
 
     def df_dx(self, external, state):
         return self.dfdx
-
-   
+    
 
 class Comm_AntRotation(Component):
     
@@ -484,9 +483,8 @@ class Comm_GainPattern(Component):
 
     def linearize(self):
         result = fixangles(self.n, self.azimuthGS, self.elevationGS)
-        self.azimuthGS, self.elevationGS = result
-        self.x[:,0] = self.azimuthGS
-        self.x[:,1] = self.elevationGS
+        self.x[:,0] = result[0]
+        self.x[:,1] = result[1]
         self.dg_daz = self.MBI.evaluate(self.x, 1)[:,0]
         self.dg_del = self.MBI.evaluate(self.x, 2)[:,0]
 

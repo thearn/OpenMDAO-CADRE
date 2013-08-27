@@ -51,6 +51,10 @@ class CADRE(Assembly):
                                    iotype='in'))
         self.add('CP_P_comm', Array(np.zeros((self.m,)), size=(self.m,), dtype=float, 
                                     iotype='in'))
+        self.add('iSOC', 
+            Array([1.0], shape=(1, ), dtype=np.float, 
+                iotype="in", desc="initial state of charge")
+        )
         self.add("cellInstd", Array(np.ones((7,12)), size=(7,12), dtype=np.float, 
             iotype="in", desc="Cell/Radiator indication", low=0, high=1)
         )
@@ -58,10 +62,13 @@ class CADRE(Assembly):
         self.add("antAngle", Float(0., iotype="in", copy=None))
         
         # State parameters (?)
-        self.add("LD", Float(0., iotype="in"))
-        self.add("lon", Float(0, iotype="in"))
-        self.add("lat", Float(0, iotype="in"))
-        self.add("alt", Float(0, iotype="in"))
+        self.add("LD", Float(5000., iotype="in"))
+        self.add("lon", Float(-83.7264, iotype="in"))
+        self.add("lat", Float(42.2708, iotype="in"))
+        self.add("alt", Float(0.256, iotype="in"))
+        
+        self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in", 
+            dtype=np.float))        
         
         # B-spline Parameters
         self.add("BsplineParameters", BsplineParameters(n, m))
