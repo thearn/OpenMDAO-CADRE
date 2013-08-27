@@ -23,7 +23,7 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 10
+NTIME = 50
 
 cadre = set_as_top(Assembly())
 
