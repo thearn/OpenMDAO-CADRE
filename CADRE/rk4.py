@@ -301,9 +301,10 @@ class RK4(Component):
                 arg[name] = arg[name].flatten()
             i_ext = self.ext_index_map[name]
             ext_length = np.prod(ext_var.shape)
-            for k in xrange(n_time):
-                for j in xrange(k):
-                    result[:, k] += self.Jx[j+1, i_ext:i_ext+ext_length, :].T.dot(arg[name])
+            for j in xrange(n_time-1):
+                Jsub = self.Jx[j+1, i_ext:i_ext+ext_length, :]
+                J_arg = Jsub.T.dot(arg[name])
+                result[:, j+1:n_time] += np.tile(J_arg, (n_time-j-1, 1)).T
 
         return result
 
@@ -342,7 +343,7 @@ class RK4(Component):
 
         if self.state_var in arg:
 
-            argsv = arg[self.state_var]
+            argsv = arg[self.state_var].T
 
             # Time-varying inputs
             for name in self.external_vars:
@@ -355,7 +356,7 @@ class RK4(Component):
                 ext_length = np.prod(ext_var.shape)/n_time
                 result[name] = np.zeros((ext_length, n_time))
                 for k in xrange(n_time-1):
-                    argsum = np.sum(argsv[:, k+1:].T, 0)
+                    argsum = np.sum(argsv[k+1:, :], 0)
                     Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
                     result[name][:, k] += Jsub.dot(argsum)
 
@@ -369,10 +370,14 @@ class RK4(Component):
                 i_ext = self.ext_index_map[name]
                 ext_length = np.prod(ext_var.shape)
                 result[name] = np.zeros((ext_length))
-                for k in xrange(n_time):
-                    for j in xrange(k, n_time):
-                        Jsub = self.Jx[k, i_ext:i_ext+ext_length, :]
-                        result[name] += Jsub.dot(argsv[:, j])
+                for k in xrange(n_time-1):
+                    argsum = np.sum(argsv[k+1:, :], 0)
+                    Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
+                    result[name] += Jsub.dot(argsum)
+                #for k in xrange(n_time):
+                    #for j in xrange(k, n_time):
+                        #Jsub = self.Jx[k, i_ext:i_ext+ext_length, :]
+                        #result[name] += Jsub.dot(argsv[:, j])
 
 
             #result[self.init_state_var] = -arg[self.state_var][:,0]

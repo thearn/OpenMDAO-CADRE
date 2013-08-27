@@ -23,7 +23,7 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 60
+NTIME = 10
 
 cadre = set_as_top(Assembly())
 
@@ -33,15 +33,28 @@ cadre = set_as_top(Assembly())
 #shape = cadre.comp.Gamma.shape
 #cadre.comp.Gamma = np.random.random(shape)
 
-cadre.add('comp', ReactionWheel_Dynamics(NTIME))
-shape = cadre.comp.w_B.shape
-cadre.comp.w_B = np.random.random(shape)*1e-4
-shape = cadre.comp.T_RW.shape
-cadre.comp.T_RW = np.random.random(shape)*1e-9
-shape = cadre.comp.w_RW0.shape
-#cadre.comp.w_RW0 = np.random.random(shape)
-inputs = ['comp.T_RW']
-outputs = ['comp.w_RW']
+#cadre.add('comp', ReactionWheel_Dynamics(NTIME))
+#shape = cadre.comp.w_B.shape
+#cadre.comp.w_B = np.random.random(shape)*1e-4
+#shape = cadre.comp.T_RW.shape
+#cadre.comp.T_RW = np.random.random(shape)*1e-9
+#shape = cadre.comp.w_RW0.shape
+##cadre.comp.w_RW0 = np.random.random(shape)
+#inputs = ['comp.T_RW']
+#outputs = ['comp.w_RW']
+
+cadre.add('comp', ThermalTemperature(NTIME))
+shape = cadre.comp.exposedArea.shape
+cadre.comp.exposedArea = np.random.random(shape)
+shape = cadre.comp.cellInstd.shape
+cadre.comp.cellInstd = np.random.random(shape)
+shape = cadre.comp.LOS.shape
+cadre.comp.LOS = np.random.random(shape)
+shape = cadre.comp.P_comm.shape
+cadre.comp.P_comm = np.random.random(shape)
+inputs = ['comp.exposedArea', 'comp.cellInstd',
+          'comp.LOS', 'comp.P_comm']
+outputs = ['comp.temperature']
 
 # --------------------------------------------------
 
@@ -51,9 +64,9 @@ from time import time
 tzero = time()
 cadre.comp.execute()
 for i in range(1):
-    #cadre.comp.execute()
+    cadre.comp.execute()
     #cadre.comp.linearize()
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, mode='adjoint')
-    cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, fd=True)
+    #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, fd=True)
 print "Execution time", time()-tzero
