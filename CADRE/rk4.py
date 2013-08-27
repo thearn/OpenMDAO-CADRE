@@ -374,13 +374,7 @@ class RK4(Component):
                     argsum = np.sum(argsv[k+1:, :], 0)
                     Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
                     result[name] += Jsub.dot(argsum)
-                #for k in xrange(n_time):
-                    #for j in xrange(k, n_time):
-                        #Jsub = self.Jx[k, i_ext:i_ext+ext_length, :]
-                        #result[name] += Jsub.dot(argsv[:, j])
 
-
-            #result[self.init_state_var] = -arg[self.state_var][:,0]
         for k, v in result.iteritems():
             ext_var = getattr(self, k)
             result[k] = v.reshape(ext_var.shape)
