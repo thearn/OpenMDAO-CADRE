@@ -64,9 +64,9 @@ from time import time
 tzero = time()
 cadre.comp.execute()
 for i in range(1):
-    cadre.comp.execute()
+    #cadre.comp.execute()
     #cadre.comp.linearize()
-    #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)
+    cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, mode='adjoint')
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, fd=True)
 print "Execution time", time()-tzero
