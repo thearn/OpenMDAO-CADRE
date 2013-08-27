@@ -482,9 +482,6 @@ class Comm_GainPattern(Component):
         self.x[:,1] = self.elevationGS
 
     def linearize(self):
-        result = fixangles(self.n, self.azimuthGS, self.elevationGS)
-        self.x[:,0] = result[0]
-        self.x[:,1] = result[1]
         self.dg_daz = self.MBI.evaluate(self.x, 1)[:,0]
         self.dg_del = self.MBI.evaluate(self.x, 2)[:,0]
 
