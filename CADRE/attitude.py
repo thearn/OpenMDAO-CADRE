@@ -141,6 +141,18 @@ class Attitude_Attitude(Component):
     """ Coordinate transformation from the interial plane to the rolled
     (forward facing) plane.
     """
+    dvx_dv = np.zeros((3, 3, 3))
+    dvx_dv[0, :, 0] = (0., 0., 0.)
+    dvx_dv[1, :, 0] = (0., 0., -1.)
+    dvx_dv[2, :, 0] = (0., 1., 0.)
+
+    dvx_dv[0, :, 1] = (0., 0., 1.)
+    dvx_dv[1, :, 1] = (0., 0., 0.)
+    dvx_dv[2, :, 1] = (-1., 0., 0.)
+
+    dvx_dv[0, :, 2] = (0., -1., 0.)
+    dvx_dv[1, :, 2] = (1., 0., 0.)
+    dvx_dv[2, :, 2] = (0., 0., 0.)
 
     def __init__(self, n=2):
         super(Attitude_Attitude, self).__init__()
@@ -156,20 +168,6 @@ class Attitude_Attitude(Component):
                                shape=(3, 3, n)))
 
         self.dO_dr = np.zeros((n, 3, 3, 6))
-
-        self.dvx_dv = np.zeros((3, 3, 3))
-        self.dvx_dv[0, :, 0] = (0., 0., 0.)
-        self.dvx_dv[1, :, 0] = (0., 0., -1.)
-        self.dvx_dv[2, :, 0] = (0., 1., 0.)
-
-        self.dvx_dv[0, :, 1] = (0., 0., 1.)
-        self.dvx_dv[1, :, 1] = (0., 0., 0.)
-        self.dvx_dv[2, :, 1] = (-1., 0., 0.)
-
-        self.dvx_dv[0, :, 2] = (0., -1., 0.)
-        self.dvx_dv[1, :, 2] = (1., 0., 0.)
-        self.dvx_dv[2, :, 2] = (0., 0., 0.)
-
 
     def linearize(self):
         """ Calculate and save derivatives. (i.e., Jacobian) """

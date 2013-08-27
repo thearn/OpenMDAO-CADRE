@@ -16,16 +16,16 @@ C2 = -1.5*mu*J2*Re**2
 C3 = -2.5*mu*J3*Re**3
 C4 = 1.875*mu*J4*Re**4
 
-class Orbit_Dynamics(rk4.RK4): 
+class Orbit_Dynamics(rk4.RK4):
 
-    def __init__(self, n_times): 
+    def __init__(self, n_times):
         super(Orbit_Dynamics, self).__init__()
         #self.time_step = time_step
 
-        self.add('r_e2b_I', Array(1000*np.ones((6,n_times)), size=(6, n_times), 
+        self.add('r_e2b_I', Array(1000*np.ones((6,n_times)), size=(6, n_times),
             dtype=np.float, iotype="out"))
 
-        self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in", 
+        self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in",
             dtype=np.float))
 
         self.state_var = 'r_e2b_I'
@@ -53,8 +53,8 @@ class Orbit_Dynamics(rk4.RK4):
 
         return f_dot
 
-    def df_dy(self, external, state): 
-        
+    def df_dy(self, external, state):
+
         x = state[0]
         y = state[1]
         z = state[2] if abs(state[2]) > 1e-15 else 1e-5
@@ -69,13 +69,13 @@ class Orbit_Dynamics(rk4.RK4):
         drdx = x/r
         drdy = y/r
         drdz = z/r
-        
+
         T2 = 1 - 5*z**2/r**2
         T3 = 3*z - 7*z**3/r**2
         T4 = 1 - 14*z**2/r**2 + 21*z**4/r**4
         T3z = 3*z - 0.6*r**2/z
         T4z = 4 - 28.0/3.0*z**2/r**2
-        
+
         dT2_dx = (10*z**2)/(r**3)*drdx
         dT2_dy = (10*z**2)/(r**3)*drdy
         dT2_dz = (10*z**2)/(r**3)*drdz - 10.*z/r**2
@@ -94,13 +94,13 @@ class Orbit_Dynamics(rk4.RK4):
 
         dT4z_dx = 56.0/3.0*z**2/r**3*drdx
         dT4z_dy = 56.0/3.0*z**2/r**3*drdy
-        dT4z_dz = 56.0/3.0*z**2/r**3*drdz - 56.0/3.0*z/r**2 
-        
+        dT4z_dz = 56.0/3.0*z**2/r**3*drdz - 56.0/3.0*z/r**2
+
         eye = np.identity(3)
-        
+
         dfdy = np.zeros((6,6))
         dfdy[0:3,3:] += eye
-        
+
         dfdy[3:,:3] = dfdy[3:,:3] + eye*(C1/r**3 + C2/r**5*T2 + C3/r**7*T3 + C4/r**7*T4)
         dfdy[3:,0] = dfdy[3:,0] + drdx*state[:3]*(-3*C1/r**4 - 5*C2/r**6*T2 - 7*C3/r**8*T3 - 7*C4/r**8*T4)
         dfdy[3:,1] = dfdy[3:,1] + drdy*state[:3]*(-3*C1/r**4 - 5*C2/r**6*T2 - 7*C3/r**8*T3 - 7*C4/r**8*T4)
@@ -119,8 +119,8 @@ class Orbit_Dynamics(rk4.RK4):
 
         return dfdy
 
-    def df_dx(self, external, state): 
-        
+    def df_dx(self, external, state):
+
         return self.dfdx
 
 
@@ -132,26 +132,26 @@ class Orbit_Initial(Component):
     Inc = Float(82.072, iotype="in", copy=None)
     argPerigee = Float(0, iotype="in", copy=None)
     trueAnomaly = Float(337.987, iotype="in", copy=None)
-    
+
     def __init__(self):
         super(Orbit_Initial, self).__init__()
         self.add('r_e2b_I0', Array(np.ones((6,)), size=(6,), dtype=np.float, iotype='out'))
-        
+
     def compute(self, altPerigee, altApogee, RAAN, Inc, argPerigee, trueAnomaly):
         Re=6378.137
         mu=398600.44
-        
+
         def S(v):
             S = np.zeros((3,3),complex)
             S[0,:] = [0, -v[2], v[1]]
             S[1,:] = [v[2], 0, -v[0]]
             S[2,:] = [-v[1], v[0], 0]
             return S
-            
+
         def getRotation(axis,angle):
             R = np.eye(3,dtype=complex) + S(axis)*np.sin(angle) + (1 - np.cos(angle)) * (np.outer(axis,axis) - np.eye(3,dtype=complex))
             return R
-            
+
         d2r = np.pi/180.0
         r_perigee = Re + altPerigee
         r_apogee = Re + altApogee
@@ -173,7 +173,7 @@ class Orbit_Initial(Component):
         v0_ECI = np.dot(O_IP,v0_P)
 
         return r0_ECI, v0_ECI
-        
+
     def linearize(self):
         h = 1e-16
         ih = complex(0,h)
@@ -186,31 +186,45 @@ class Orbit_Initial(Component):
             v[i] -= ih
             self.J[:3,i] = r0_ECI.imag/h
             self.J[3:,i] = v0_ECI.imag/h
-    
+
     def execute(self):
         r0_ECI, v0_ECI = self.compute(self.altPerigee, self.altApogee, self.RAAN, self.Inc, self.argPerigee, self.trueAnomaly)
         self.r_e2b_I0[:3] = r0_ECI.real
         self.r_e2b_I0[3:] = v0_ECI.real
-        
-    def applyDer(self, arg, result):
-        if not result['r_e2b_I0']:
-            result['r_e2b_I0'] = np.zeros(6)
+
+    def apply_deriv(self, arg, result):
 
         J = self.J
-        result['r_e2b_I0'][:3] = J[:3,0]*arg['altPerigee'] + J[:3,1]*arg['altApogee'] + J[:3,2]*arg['RAAN'] + \
-        J[:3,3]*arg['Inc'] + J[:3,4]*arg['argPerigee'] + J[:3,5]*arg['trueAnomaly']
-        result['r_e2b_I0'][3:] = J[3:,0]*arg['altPerigee'] + J[3:,1]*arg['altApogee'] + J[3:,2]*arg['RAAN'] + \
-        J[3:,3]*arg['Inc'] + J[3:,4]*arg['argPerigee'] + J[3:,5]*arg['trueAnomaly']
-    
-        return result
-        
-    def applyDerT(self, arg, result):
+
+        result['r_e2b_I0'][:3] += J[:3,0]*arg['altPerigee'] + \
+                                  J[:3,1]*arg['altApogee'] + \
+                                  J[:3,2]*arg['RAAN'] + \
+                                  J[:3,3]*arg['Inc'] + \
+                                  J[:3,4]*arg['argPerigee'] + \
+                                  J[:3,5]*arg['trueAnomaly']
+        result['r_e2b_I0'][3:] += J[3:,0]*arg['altPerigee'] + \
+                                  J[3:,1]*arg['altApogee'] + \
+                                  J[3:,2]*arg['RAAN'] + \
+                                  J[3:,3]*arg['Inc'] + \
+                                  J[3:,4]*arg['argPerigee'] + \
+                                  J[3:,5]*arg['trueAnomaly']
+
+
+    def apply_derivT(self, arg, result):
+
         J = self.J
+
         if 'r_e2b_I0' in arg:
-            result['altPerigee'] = sum(J[:3,0]*arg['r_e2b_I0'][:3]) + sum(J[3:,0]*arg['r_e2b_I0'][3:])
-            result['altApogee'] = sum(J[:3,1]*arg['r_e2b_I0'][:3]) + sum(J[3:,1]*arg['r_e2b_I0'][3:])
-            result['RAAN'] = sum(J[:3,2]*arg['r_e2b_I0'][:3]) + sum(J[3:,2]*arg['r_e2b_I0'][3:])
-            result['Inc'] = sum(J[:3,3]*arg['r_e2b_I0'][:3]) + sum(J[3:,3]*arg['r_e2b_I0'][3:])
-            result['argPerigee'] = sum(J[:3,4]*arg['r_e2b_I0'][:3]) + sum(J[3:,4]*arg['r_e2b_I0'][3:])
-            result['trueAnomaly'] = sum(J[:3,5]*arg['r_e2b_I0'][:3]) + sum(J[3:,5]*arg['r_e2b_I0'][3:])
-        return result
+
+            result['altPerigee'] += sum(J[:3,0]*arg['r_e2b_I0'][:3]) + \
+                                    sum(J[3:,0]*arg['r_e2b_I0'][3:])
+            result['altApogee'] += sum(J[:3,1]*arg['r_e2b_I0'][:3]) + \
+                                   sum(J[3:,1]*arg['r_e2b_I0'][3:])
+            result['RAAN'] += sum(J[:3,2]*arg['r_e2b_I0'][:3]) + \
+                              sum(J[3:,2]*arg['r_e2b_I0'][3:])
+            result['Inc'] += sum(J[:3,3]*arg['r_e2b_I0'][:3]) + \
+                             sum(J[3:,3]*arg['r_e2b_I0'][3:])
+            result['argPerigee'] += sum(J[:3,4]*arg['r_e2b_I0'][:3]) + \
+                                    sum(J[3:,4]*arg['r_e2b_I0'][3:])
+            result['trueAnomaly'] += sum(J[:3,5]*arg['r_e2b_I0'][:3]) + \
+                                     sum(J[3:,5]*arg['r_e2b_I0'][3:])
