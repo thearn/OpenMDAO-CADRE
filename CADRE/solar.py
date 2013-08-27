@@ -1,3 +1,5 @@
+''' Solar discipline for CADRE '''
+
 from openmdao.main.api import Component
 from openmdao.lib.datatypes.api import Float, Array
 from kinematics import fixangles
@@ -7,9 +9,7 @@ import numpy as np
 
 
 class Solar_ExposedArea(Component):
-
-    '''
-    Exposed area calculation for a given solar cell
+    '''Exposed area calculation for a given solar cell
        p: panel ID [0,11]
        c: cell ID [0,6]
        a: fin angle [0,90]
@@ -17,6 +17,8 @@ class Solar_ExposedArea(Component):
        e: elevation [0,180]
        LOS: line of sight with the sun [0,1]
     '''
+    
+    # Inputs
     finAngle = Float(0., iotype="in", copy=None)
     
     def __init__(self, n, raw1=None, raw2=None):
@@ -31,11 +33,17 @@ class Solar_ExposedArea(Component):
         self.nc = 7
         self.np = 12
 
-        self.add('azimuth', Array(np.zeros((5,)), size=(5,), dtype=np.float, iotype='in'))
-        self.add('elevation', Array(np.zeros((5,)), size=(5,), dtype=np.float, iotype='in'))
+        # Inputs
+        self.add('azimuth', Array(np.zeros((n,)), size=(n,), dtype=np.float, 
+                                  iotype='in'))
+        self.add('elevation', Array(np.zeros((n,)), size=(n,), dtype=np.float, 
+                                    iotype='in'))
         
-        self.add('exposedArea', Array(np.zeros((self.nc,self.np,self.n)), size=(self.nc,self.np,self.n), 
-                                      dtype=np.float, iotype='out', low=-5e-3, high=1.834e-1))
+        # Outputs
+        self.add('exposedArea', Array(np.zeros((self.nc, self.np, self.n)), 
+                                      size=(self.nc, self.np, self.n), 
+                                      dtype=np.float, iotype='out', 
+                                      low=-5e-3, high=1.834e-1))
 
         self.na = 10
         self.nz = 73
@@ -67,55 +75,68 @@ class Solar_ExposedArea(Component):
 
         counter = 0
         data = np.zeros((self.na, self.nz, self.ne, self.np*self.nc))
+        flat_size = self.na*self.nz*self.ne
         for p in range(self.np):
             for c in range(self.nc):
-                index = 119
-                for i in range(self.na):
-                    for j in range(self.nz):
-                        for k in range(self.ne):
-                            data[i,j,k,counter] = raw2[7*p+c][index]
-                            index += 1
+                data[:, :, :, counter] = \
+                    raw2[7*p+c][119:119+flat_size].reshape((self.na,
+                                                            self.nz,
+                                                            self.ne))
                 counter += 1
                 
-        self.MBI = MBI(data, [angle,azimuth,elevation], [4,10,8], [4,4,4])
-        self.x = np.zeros((self.n,3))
-        self.Js = [None for i in range(3)]
+        self.MBI = MBI(data, [angle, azimuth, elevation], 
+                             [4, 10, 8], 
+                             [4, 4, 4])
+        
+        self.x = np.zeros((self.n, 3))
+        self.Jfin = None
+        self.Jaz = None
+        self.Jel = None
     
     def setx(self):
-        result = fixangles(self.n, self.azimuth[:], self.elevation[:])
-        self.x[:,0] = self.finAngle
-        self.x[:,1] = result[0]
-        self.x[:,2] = result[1]
+        """ Sets our state array"""
+        
+        result = fixangles(self.n, self.azimuth, self.elevation)
+        self.x[:, 0] = self.finAngle
+        self.x[:, 1] = result[0]
+        self.x[:, 2] = result[1]
 
     def linearize(self):
-        self.setx()
-        for i in range(3):
-            self.Js[i] = self.MBI.evaluate(self.x, 1+i)
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        
+        self.Jfin = self.MBI.evaluate(self.x, 1).reshape(self.n, 7, 12, order='F')
+        self.Jaz = self.MBI.evaluate(self.x, 2).reshape(self.n, 7, 12, order='F')
+        self.Jel = self.MBI.evaluate(self.x, 3).reshape(self.n, 7, 12, order='F')
 
     def execute(self):
+        """ Calculate output. """
+        
         self.setx()
-        self.P = self.MBI.evaluate(self.x)
-        self.exposedArea = np.zeros((self.exposedArea.shape))
-        for c in range(7):
-            for p in range(12):
-                self.exposedArea[c, p, :] = self.P[:, 7*p+c]
+        P = self.MBI.evaluate(self.x).T
+        self.exposedArea = P.reshape(7, 12, self.n, order='F')
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
         
         for c in range(7):
-            for p in range(12):
-                if 'finAngle' in arg:
-                    result['exposedArea'][c,p,:] += self.Js[0][:,7*p+c]*arg['finAngle']
-                if 'azimuth' in arg:
-                    result['exposedArea'][c,p,:] += self.Js[1][:,7*p+c]*arg['azimuth'][:]
-                if 'elevation' in arg:
-                    result['exposedArea'][c,p,:] += self.Js[2][:,7*p+c]*arg['elevation'][:]
+            if 'finAngle' in arg:
+                result['exposedArea'][c, :, :] += \
+                    self.Jfin[:, c, :].T*arg['finAngle']
+            if 'azimuth' in arg:
+                result['exposedArea'][c, :, :] += \
+                    self.Jaz[:, c, :].T*arg['azimuth']
+            if 'elevation' in arg:
+                result['exposedArea'][c, :, :] += \
+                    self.Jel[:, c, :].T*arg['elevation']
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
-        for c in range(7):
-            for p in range(12):
-                if 'exposedArea' in arg:
-                    result['finAngle'] += np.dot(self.Js[0][:,7*p+c], arg['exposedArea'][c,p,:])
-                    result['azimuth'][:] += self.Js[1][:,7*p+c]*arg['exposedArea'][c,p,:]
-                    result['elevation'][:] += self.Js[2][:,7*p+c]*arg['exposedArea'][c,p,:]
+        if 'exposedArea' in arg:
+            for c in range(7):
+                result['finAngle'] += \
+                    np.sum(self.Jfin[:, c, :].T*arg['exposedArea'][c, :, :])
+                result['azimuth'] += \
+                    np.sum(self.Jaz[:, c, :].T*arg['exposedArea'][c, :, :], 0)
+                result['elevation'] += \
+                    np.sum(self.Jel[:, c, :].T*arg['exposedArea'][c, :, :], 0)
