@@ -31,74 +31,74 @@ class CADRE(Assembly):
     def __init__(self, n, m, solar_raw1, solar_raw2, comm_raw, power_raw):
         super(CADRE, self).__init__()
         self.self = self
-        
+
         ## Assembly-level parameters
-        
+
         # Analysis parameters
         self.n = n
         self.m = m
-        self.add('t', Array(np.zeros((n,), order='F'), size=(n,), 
+        self.add('t', Array(np.zeros((n,), order='F'), size=(n,),
                             dtype=np.float, iotype="in"))
         self.add('t1', Float(0., iotype='in'))
         self.add('t2', Float(43200., iotype='in'))
         h = (self.t2 - self.t1)/(self.n - 1)
-        self.add("h", Float(h, iotype="in", copy=None))        
-        
+        self.add("h", Float(h, iotype="in", copy=None))
+
         # Design parameters
-        self.add('CP_Isetpt', Array(np.zeros((12,self.m)), size=(12,self.m), dtype=float, 
+        self.add('CP_Isetpt', Array(np.zeros((12,self.m)), size=(12,self.m), dtype=float,
                                     iotype='in'))
-        self.add('CP_gamma', Array(np.zeros((self.m,)), size=(self.m,), dtype=float, 
+        self.add('CP_gamma', Array(np.zeros((self.m,)), size=(self.m,), dtype=float,
                                    iotype='in'))
-        self.add('CP_P_comm', Array(np.zeros((self.m,)), size=(self.m,), dtype=float, 
+        self.add('CP_P_comm', Array(np.zeros((self.m,)), size=(self.m,), dtype=float,
                                     iotype='in'))
-        self.add('iSOC', 
-            Array([1.0], shape=(1, ), dtype=np.float, 
+        self.add('iSOC',
+            Array([1.0], shape=(1, ), dtype=np.float,
                 iotype="in", desc="initial state of charge")
         )
-        self.add("cellInstd", Array(np.ones((7,12)), size=(7,12), dtype=np.float, 
+        self.add("cellInstd", Array(np.ones((7,12)), size=(7,12), dtype=np.float,
             iotype="in", desc="Cell/Radiator indication", low=0, high=1)
         )
         self.add("finAngle", Float(0., iotype="in", copy=None))
         self.add("antAngle", Float(0., iotype="in", copy=None))
-        
+
         # State parameters (?)
         self.add("LD", Float(5000., iotype="in"))
         self.add("lon", Float(-83.7264, iotype="in"))
         self.add("lat", Float(42.2708, iotype="in"))
         self.add("alt", Float(0.256, iotype="in"))
-        
-        self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in", 
-            dtype=np.float))        
-        
+
+        self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in",
+            dtype=np.float))
+
         # B-spline Parameters
         self.add("BsplineParameters", BsplineParameters(n, m))
         self.driver.workflow.add("BsplineParameters")
-        
+
         # Attitude components
         self.add("Attitude_Angular", Attitude_Angular(n))
         self.driver.workflow.add("Attitude_Angular")
-        
+
         self.add("Attitude_AngularRates", Attitude_AngularRates(n))
         self.driver.workflow.add("Attitude_AngularRates")
-        
+
         self.add("Attitude_Attitude", Attitude_Attitude(n))
         self.driver.workflow.add("Attitude_Attitude")
-    
+
         self.add("Attitude_Roll", Attitude_Roll(n))
         self.driver.workflow.add("Attitude_Roll")
-        
+
         self.add("Attitude_RotationMtx", Attitude_RotationMtx(n))
         self.driver.workflow.add("Attitude_RotationMtx")
-        
+
         self.add("Attitude_RotationMtxRates", Attitude_RotationMtxRates(n))
         self.driver.workflow.add("Attitude_RotationMtxRates")
-        
-        self.add("Attitude_Sideslip", Attitude_Sideslip(n))
-        self.driver.workflow.add("Attitude_Sideslip")
-        
+
+        #self.add("Attitude_Sideslip", Attitude_Sideslip(n))
+        #self.driver.workflow.add("Attitude_Sideslip")
+
         self.add("Attitude_Torque", Attitude_Torque(n))
         self.driver.workflow.add("Attitude_Torque")
-        
+
         ## Battery components
         self.add("BatteryConstraints", BatteryConstraints(n))
         self.driver.workflow.add("BatteryConstraints")
@@ -109,45 +109,45 @@ class CADRE(Assembly):
 
         self.add("BatteryPower", BatteryPower(n))
         self.driver.workflow.add("BatteryPower")
-        
+
         self.add("BatterySOC", BatterySOC(n))
         self.driver.workflow.add("BatterySOC")
-        
+
         # Comm components
         self.add("Comm_AntRotation", Comm_AntRotation(n))
         self.driver.workflow.add("Comm_AntRotation")
-        
+
         self.add("Comm_AntRotationMtx", Comm_AntRotationMtx(n))
         self.driver.workflow.add("Comm_AntRotationMtx")
-        
+
         self.add("Comm_BitRate", Comm_BitRate(n))
         self.driver.workflow.add("Comm_BitRate")
-        
+
         self.add("Comm_DataDownloaded", Comm_DataDownloaded(n))
         self.driver.workflow.add("Comm_DataDownloaded")
         self.create_passthrough("Comm_DataDownloaded.Data")
-        
+
         self.add("Comm_Distance", Comm_Distance(n))
         self.driver.workflow.add("Comm_Distance")
-        
+
         self.add("Comm_EarthsSpin", Comm_EarthsSpin(n))
         self.driver.workflow.add("Comm_EarthsSpin")
-        
+
         self.add("Comm_EarthsSpinMtx", Comm_EarthsSpinMtx(n))
         self.driver.workflow.add("Comm_EarthsSpinMtx")
 
         self.add("Comm_GainPattern", Comm_GainPattern(n, comm_raw))
         self.driver.workflow.add("Comm_GainPattern")
-        
+
         self.add("Comm_GSposEarth", Comm_GSposEarth(n))
         self.driver.workflow.add("Comm_GSposEarth")
-        
+
         self.add("Comm_GSposECI", Comm_GSposECI(n))
         self.driver.workflow.add("Comm_GSposECI")
-        
+
         self.add("Comm_LOS", Comm_LOS(n))
         self.driver.workflow.add("Comm_LOS")
-        
+
         self.add("Comm_VectorAnt", Comm_VectorAnt(n))
         self.driver.workflow.add("Comm_VectorAnt")
 
@@ -159,61 +159,61 @@ class CADRE(Assembly):
 
         self.add("Comm_VectorSpherical", Comm_VectorSpherical(n))
         self.driver.workflow.add("Comm_VectorSpherical")
-        
+
         # Orbit components
         #self.add("Orbit_Initial", Orbit_Initial())
         #self.driver.workflow.add("Orbit_Initial")
-        
+
         self.add("Orbit_Dynamics", Orbit_Dynamics(n))
         self.driver.workflow.add("Orbit_Dynamics")
-        
+
         # Power
         self.add("Power_CellVoltage", Power_CellVoltage(n, power_raw))
         self.driver.workflow.add("Power_CellVoltage")
-        
+
         self.add("Power_SolarPower", Power_SolarPower(n))
         self.driver.workflow.add("Power_SolarPower")
-        
+
         self.add("Power_Total", Power_Total(n))
         self.driver.workflow.add("Power_Total")
-        
+
         # Reaction wheel components
         self.add("ReactionWheel_Motor", ReactionWheel_Motor(n))
         self.driver.workflow.add("ReactionWheel_Motor")
-        
+
         self.add("ReactionWheel_Power", ReactionWheel_Power(n))
         self.driver.workflow.add("ReactionWheel_Power")
-        
+
         self.add("ReactionWheel_Torque", ReactionWheel_Torque(n))
         self.driver.workflow.add("ReactionWheel_Torque")
-        
+
         self.add("ReactionWheel_Dynamics", ReactionWheel_Dynamics(n))
         self.driver.workflow.add("ReactionWheel_Dynamics")
-        
+
         # Solar
-        self.add("Solar_ExposedArea", Solar_ExposedArea(n, solar_raw1, 
+        self.add("Solar_ExposedArea", Solar_ExposedArea(n, solar_raw1,
                                                         solar_raw2))
         self.driver.workflow.add("Solar_ExposedArea")
-        
+
         # Sun components
         self.add("Sun_LOS", Sun_LOS(n))
         self.driver.workflow.add("Sun_LOS")
-        
+
         self.add("Sun_PositionBody", Sun_PositionBody(n))
         self.driver.workflow.add("Sun_PositionBody")
-        
+
         self.add("Sun_PositionECI", Sun_PositionECI(n))
         self.driver.workflow.add("Sun_PositionECI")
-        
+
         self.add("Sun_PositionSpherical", Sun_PositionSpherical(n))
         self.driver.workflow.add("Sun_PositionSpherical")
-        
+
         # Thermal temp components
         self.add("ThermalTemperature", ThermalTemperature(n))
         self.driver.workflow.add("ThermalTemperature")
-        
+
         self.make_connections()
-    
+
     def get_unconnected_inputs(self):
         unconnected_inputs = []
         connected_inputs = [i[1] for i in self.get_dataflow()['connections']]
@@ -222,7 +222,7 @@ class CADRE(Assembly):
         for compname in self.list_components() + ['self']:
             if compname == "driver":
                 continue
-            comp = self.get(compname)            
+            comp = self.get(compname)
             for var in comp.list_inputs():
                 if var in defaults:
                     continue
@@ -230,7 +230,7 @@ class CADRE(Assembly):
                 if fullname not in connected_inputs:
                     unconnected_inputs.append(fullname)
         return unconnected_inputs
-                
+
     def print_set_vals(self,setvals=None, printvals=None, tval=None):
         vals = []
         defaults = ['itername', 'force_execute', 'directory', 'exec_count',
@@ -258,10 +258,10 @@ class CADRE(Assembly):
                 val = comp.get(var)
                 data = [var, val, compname, "out"]
                 vals.append(data)
-        
-        vals.sort(key=lambda x: x[3], reverse=True)        
+
+        vals.sort(key=lambda x: x[3], reverse=True)
         vals.sort(key=lambda x: x[0])
-        
+
         for v in vals:
             if printvals:
                 if v[0] == printvals:
@@ -272,14 +272,14 @@ class CADRE(Assembly):
                         print "rel error", np.abs(tval - v[1]) / tval
             else:
                 print v[0]
-        
+
     def make_connections(self):
         """
         Collects the names of all input and output variables for all
-        components within the assembly (drivers excluded). 
+        components within the assembly (drivers excluded).
 
         Then establishes connections between
-        any output variable and input variable that has the same name, so 
+        any output variable and input variable that has the same name, so
         long as the variable name does not exist as an output to more than
         a single component (so excludes default outputs)
         """
@@ -306,11 +306,11 @@ class CADRE(Assembly):
                     outputs[output_name].append(compname)
 
         print
-        
+
         assym_level = self.list_inputs()
         assym_level.remove('directory')
         assym_level.remove('force_execute')
-        
+
         for var in assym_level:
             outputs[var] = ['']
         for varname in outputs.keys():
@@ -327,7 +327,7 @@ class CADRE(Assembly):
                     topath = '.'.join([compname, varname])
                     self.connect(frompath, topath)
                     print "Connecting", frompath, "to", topath, "..."
-        """        
+        """
         print
         print "Unconnected inputs:"
         for i in self.get_unconnected_inputs():
