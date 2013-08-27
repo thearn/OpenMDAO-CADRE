@@ -277,9 +277,6 @@ class Sun_PositionSpherical(Component):
         self.azimuth = azimuth
         self.elevation = elevation
 
-        self.lib = __import__('CADRE.lib.KinematicsLib').lib.KinematicsLib
-        zazimuth, zelevation = self.lib.computepositionspherical(self.n, self.r_e2s_B)
-
     def linearize(self):
         self.Ja1, self.Ji1, self.Jj1, self.Ja2, self.Ji2, self.Jj2 = \
                   computepositionsphericaljacobian(self.n, 3*self.n, self.r_e2s_B)
