@@ -107,20 +107,29 @@ cadre = set_as_top(Assembly())
 #inputs = ['comp.w_B']
 #outputs = ['comp.wdot_B']
 
-cadre.add('comp', ThermalTemperature(NTIME))
-shape = cadre.comp.exposedArea.shape
-cadre.comp.exposedArea = np.random.random(shape)
-shape = cadre.comp.cellInstd.shape
-cadre.comp.cellInstd = np.random.random(shape)
-shape = cadre.comp.LOS.shape
-cadre.comp.LOS = np.random.random(shape)
-shape = cadre.comp.P_comm.shape
-cadre.comp.P_comm = np.random.random(shape)
-inputs = ['comp.exposedArea', 'comp.cellInstd',
-          'comp.LOS', 'comp.P_comm']
-#inputs = ['ThermalTemperature.exposedArea', 'ThermalTemperature.LOS', 'ThermalTemperature.P_comm']
-#inputs = ['ThermalTemperature.cellInstd']
-outputs = ['comp.temperature']
+cadre.add('comp', Solar_ExposedArea(NTIME))
+cadre.comp.finAngle = .15
+shape = cadre.comp.azimuth.shape
+cadre.comp.azimuth = np.random.random(shape)
+shape = cadre.comp.elevation.shape
+cadre.comp.elevation = np.random.random(shape)
+inputs = ['comp.finAngle', 'comp.azimuth', 'comp.elevation']
+outputs = ['comp.exposedArea']
+
+#cadre.add('comp', ThermalTemperature(NTIME))
+#shape = cadre.comp.exposedArea.shape
+#cadre.comp.exposedArea = np.random.random(shape)
+#shape = cadre.comp.cellInstd.shape
+#cadre.comp.cellInstd = np.random.random(shape)
+#shape = cadre.comp.LOS.shape
+#cadre.comp.LOS = np.random.random(shape)
+#shape = cadre.comp.P_comm.shape
+#cadre.comp.P_comm = np.random.random(shape)
+#inputs = ['comp.exposedArea', 'comp.cellInstd',
+          #'comp.LOS', 'comp.P_comm']
+##inputs = ['ThermalTemperature.exposedArea', 'ThermalTemperature.LOS', 'ThermalTemperature.P_comm']
+##inputs = ['ThermalTemperature.cellInstd']
+#outputs = ['comp.temperature']
 
 cadre.driver.workflow.add('comp')
 cadre.comp.h = .01

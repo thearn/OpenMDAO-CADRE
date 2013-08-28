@@ -1,3 +1,5 @@
+''' Power discipline for CADRE '''
+
 import numpy as np
 import scipy.sparse
 
@@ -20,12 +22,12 @@ class Power_CellVoltage( Component ):
             desc="Line of Sight over Time"))
         self.add('temperature', Array(np.zeros((5, n)), size=(5,n,), dtype=np.float,
                                       iotype="in"))
-        self.add('exposedArea', Array(np.zeros((7,12,n)), size=(7,12,n), dtype=np.float,
+        self.add('exposedArea', Array(np.zeros((7, 12, n)), size=(7, 12, n), dtype=np.float,
                                       iotype="in"))
-        self.add('Isetpt', Array(np.zeros((12,n)), size=(12,n), dtype=np.float,
+        self.add('Isetpt', Array(np.zeros((12 ,n)), size=(12,n), dtype=np.float,
                                       iotype="in"))
 
-        self.add('V_sol', Array(np.zeros((12,n)), size=(12,n), dtype=np.float,
+        self.add('V_sol', Array(np.zeros((12, n)), size=(12,n), dtype=np.float,
                                       iotype="out"))
 
         
@@ -37,12 +39,12 @@ class Power_CellVoltage( Component ):
 
         self.MBI = MBI.MBI(V,[T,A,I],[6,6,15],[3,3,3])
 
-        self.x = np.zeros((84*self.n,3), order='F')
-        self.xV = self.x[:].reshape((self.n,7,12,3), order='F')
-        self.dV_dL = np.zeros((self.n,12), order='F')
-        self.dV_dT = np.zeros((self.n,12,5), order='F')
-        self.dV_dA = np.zeros((self.n,7,12), order='F')
-        self.dV_dI = np.zeros((self.n,12), order='F')
+        self.x = np.zeros((84*self.n, 3), order='F')
+        self.xV = self.x.reshape((self.n, 7, 12, 3), order='F')
+        self.dV_dL = np.zeros((self.n, 12), order='F')
+        self.dV_dT = np.zeros((self.n, 12,5), order='F')
+        self.dV_dA = np.zeros((self.n, 7, 12), order='F')
+        self.dV_dI = np.zeros((self.n, 12), order='F')
 
     def setx(self):
         for c in range(7):
@@ -55,22 +57,27 @@ class Power_CellVoltage( Component ):
     def execute(self): 
 
         self.setx()
-        self.raw = self.MBI.evaluate(self.x)[:,0].reshape((self.n,7,12),order='F')
+        self.raw = self.MBI.evaluate(self.x)[:, 0].reshape((self.n, 7, 12),
+                                                           order='F')
         self.V_sol = np.zeros((12, self.n))
         for c in range(7):
-            for p in range(12):
-                self.V_sol[p,:] += self.raw[:,c,p]
+            self.V_sol += self.raw[:, c, :].T
+            #for p in range(12):
+                #self.V_sol[p, :] += self.raw[:, c, p]
 
     def linearize(self): 
 
-        self.setx()
-        self.raw1 = self.MBI.evaluate(self.x,1)[:,0].reshape((self.n,7,12),order='F')
-        self.raw2 = self.MBI.evaluate(self.x,2)[:,0].reshape((self.n,7,12),order='F')
-        self.raw3 = self.MBI.evaluate(self.x,3)[:,0].reshape((self.n,7,12),order='F')
+        self.raw1 = self.MBI.evaluate(self.x, 1)[:, 0].reshape((self.n, 7,
+                                                                12),order='F')
+        self.raw2 = self.MBI.evaluate(self.x, 2)[:, 0].reshape((self.n, 7,
+                                                                12),order='F')
+        self.raw3 = self.MBI.evaluate(self.x, 3)[:, 0].reshape((self.n, 7,
+                                                                12),order='F')
         self.dV_dL[:] = 0.0
         self.dV_dT[:] = 0.0
         self.dV_dA[:] = 0.0
         self.dV_dI[:] = 0.0
+        
         for c in range(7):
             for p in range(12):
                 i = 4 if p < 4 else (p % 4)
@@ -82,8 +89,7 @@ class Power_CellVoltage( Component ):
     def apply_deriv(self, arg, result):
 
         if 'LOS' in arg: 
-            for p in range(12):
-                result['V_sol'][p,:] += self.dV_dL[:,p] * arg['LOS'][:]
+            result['V_sol'] += self.dV_dL.T * arg['LOS']
 
         if 'temperature' in arg: 
             for p in range(12):
@@ -91,13 +97,12 @@ class Power_CellVoltage( Component ):
                 result['V_sol'][p,:] += self.dV_dT[:,p,i] * arg['temperature'][i,:]
 
         if 'Isetpt' in arg: 
-            for p in range(12):
-                result['V_sol'][p,:] += self.dV_dI[:,p] * arg['Isetpt'][p,:]
+            result['V_sol'] += self.dV_dI.T * arg['Isetpt']
 
         if 'exposedArea' in arg: 
             for p in range(12):
-                for c in range(7):
-                    result['V_sol'][p,:] += self.dV_dA[:,c,p] * arg['exposedArea'][c,p,:]
+                result['V_sol'][p, :] += \
+                 np.sum(self.dV_dA[:, :, p] * arg['exposedArea'][:, p, :].T, 1)
 
     def apply_derivT(self, arg, result): 
 

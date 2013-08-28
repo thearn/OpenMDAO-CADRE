@@ -23,7 +23,7 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 10
+NTIME = 15
 
 cadre = set_as_top(Assembly())
 
@@ -43,18 +43,39 @@ cadre = set_as_top(Assembly())
 #inputs = ['comp.T_RW']
 #outputs = ['comp.w_RW']
 
-cadre.add('comp', ThermalTemperature(NTIME))
-shape = cadre.comp.exposedArea.shape
-cadre.comp.exposedArea = np.random.random(shape)
-shape = cadre.comp.cellInstd.shape
-cadre.comp.cellInstd = np.random.random(shape)
+#cadre.add('comp', ThermalTemperature(NTIME))
+#shape = cadre.comp.exposedArea.shape
+#cadre.comp.exposedArea = np.random.random(shape)
+#shape = cadre.comp.cellInstd.shape
+#cadre.comp.cellInstd = np.random.random(shape)
+#shape = cadre.comp.LOS.shape
+#cadre.comp.LOS = np.random.random(shape)
+#shape = cadre.comp.P_comm.shape
+#cadre.comp.P_comm = np.random.random(shape)
+#inputs = ['comp.exposedArea', 'comp.cellInstd',
+          #'comp.LOS', 'comp.P_comm']
+#outputs = ['comp.temperature']
+
+#cadre.add('comp', Solar_ExposedArea(NTIME))
+#cadre.comp.finAngle = .15
+#shape = cadre.comp.azimuth.shape
+#cadre.comp.azimuth = np.random.random(shape)
+#shape = cadre.comp.elevation.shape
+#cadre.comp.elevation = np.random.random(shape)
+#inputs = ['comp.finAngle', 'comp.azimuth', 'comp.elevation']
+#outputs = ['comp.exposedArea']
+
+cadre.add('comp', Power_CellVoltage(NTIME))
 shape = cadre.comp.LOS.shape
-cadre.comp.LOS = np.random.random(shape)
-shape = cadre.comp.P_comm.shape
-cadre.comp.P_comm = np.random.random(shape)
-inputs = ['comp.exposedArea', 'comp.cellInstd',
-          'comp.LOS', 'comp.P_comm']
-outputs = ['comp.temperature']
+cadre.comp.LOS = np.ones(shape)
+shape = cadre.comp.temperature.shape
+cadre.comp.temperature = np.random.random(shape)*40 + 240
+shape = cadre.comp.exposedArea.shape
+cadre.comp.exposedArea = np.random.random(shape)*1e-4
+shape = cadre.comp.Isetpt.shape
+cadre.comp.Isetpt = np.random.random(shape)*1e-2
+inputs = ['comp.LOS', 'comp.temperature', 'comp.exposedArea', 'comp.Isetpt']
+outputs = ['comp.V_sol']
 
 # --------------------------------------------------
 
