@@ -1,3 +1,6 @@
+
+import numpy as np
+
 from openmdao.main.api import Assembly
 from openmdao.main.datatypes.api import Float, Array, Int
 
@@ -10,7 +13,6 @@ from comm import Comm_AntRotation, Comm_AntRotationMtx, Comm_BitRate, \
      Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
      Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
      Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
-#from MultiPtParameters import MultiPtParameters ??
 from orbit import Orbit_Initial, Orbit_Dynamics
 from reactionwheel import ReactionWheel_Motor, ReactionWheel_Power, \
      ReactionWheel_Torque, ReactionWheel_Dynamics
@@ -18,8 +20,6 @@ from solar import Solar_ExposedArea
 from sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, Sun_PositionSpherical
 from thermal_temperature import ThermalTemperature
 from power import Power_CellVoltage, Power_SolarPower, Power_Total
-
-import numpy as np
 
 #rk4 components:
 #Comm_DataDownloaded, BatterySOC, ThermalTemperature, Orbit_Dynamics
@@ -32,17 +32,17 @@ class CADRE(Assembly):
         super(CADRE, self).__init__()
         self.self = self
 
-        ## Assembly-level parameters
-
         # Analysis parameters
         self.n = n
         self.m = m
-        self.add('t', Array(np.zeros((n,), order='F'), size=(n,),
+        self.add('t', Array(np.zeros((n,)), size=(n,),
                             dtype=np.float, iotype="in"))
         self.add('t1', Float(0., iotype='in'))
         self.add('t2', Float(43200., iotype='in'))
         h = (self.t2 - self.t1)/(self.n - 1)
         self.add("h", Float(h, iotype="in", copy=None))
+        
+        self.t = np.array(range(0, n))*h
 
         # Design parameters
         self.add('CP_Isetpt', Array(np.zeros((12,self.m)), size=(12,self.m), dtype=float,
@@ -93,8 +93,8 @@ class CADRE(Assembly):
         self.add("Attitude_RotationMtxRates", Attitude_RotationMtxRates(n))
         self.driver.workflow.add("Attitude_RotationMtxRates")
 
-        #self.add("Attitude_Sideslip", Attitude_Sideslip(n))
-        #self.driver.workflow.add("Attitude_Sideslip")
+        self.add("Attitude_Sideslip", Attitude_Sideslip(n))
+        self.driver.workflow.add("Attitude_Sideslip")
 
         self.add("Attitude_Torque", Attitude_Torque(n))
         self.driver.workflow.add("Attitude_Torque")
@@ -161,8 +161,8 @@ class CADRE(Assembly):
         self.driver.workflow.add("Comm_VectorSpherical")
 
         # Orbit components
-        #self.add("Orbit_Initial", Orbit_Initial())
-        #self.driver.workflow.add("Orbit_Initial")
+        self.add("Orbit_Initial", Orbit_Initial())
+        self.driver.workflow.add("Orbit_Initial")
 
         self.add("Orbit_Dynamics", Orbit_Dynamics(n))
         self.driver.workflow.add("Orbit_Dynamics")
@@ -284,13 +284,11 @@ class CADRE(Assembly):
         a single component (so excludes default outputs)
         """
         inputs, outputs = {}, {}
-        self.varnames = {}
         for compname in self.list_components():
 
             comp_inputs = self.get(compname).list_inputs()
 
             for input_name in comp_inputs:
-                self.varnames[input_name] = compname
                 if input_name not in inputs:
                     inputs[input_name] = [compname]
                 else:
@@ -299,7 +297,6 @@ class CADRE(Assembly):
             comp_outputs = self.get(compname).list_outputs()
 
             for output_name in comp_outputs:
-                self.varnames[output_name] = compname
                 if output_name not in outputs:
                     outputs[output_name] = [compname]
                 else:

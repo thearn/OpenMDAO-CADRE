@@ -61,23 +61,27 @@ class ReactionWheel_Motor(Component):
 
     def apply_deriv(self, arg, result):
 
-        for k in range(3):
-            for j in range(3):
-                if 'T_RW' in arg:
-                    result['T_m'][k,:] += self.dT_dTm[:,k,j] * arg['T_RW'][j,:]
-                if 'w_B' in arg:
-                    result['T_m'][k,:] += self.dT_dwb[:,k,j] * arg['w_B'][j,:]
-                if 'w_RW' in arg:
-                    result['T_m'][k,:] += self.dT_dh[:,k,j] * arg['w_RW'][j,:] * self.J_RW
+        if 'T_m' in result:
+            for k in range(3):
+                for j in range(3):
+                    if 'T_RW' in arg:
+                        result['T_m'][k,:] += self.dT_dTm[:,k,j] * arg['T_RW'][j,:]
+                    if 'w_B' in arg:
+                        result['T_m'][k,:] += self.dT_dwb[:,k,j] * arg['w_B'][j,:]
+                    if 'w_RW' in arg:
+                        result['T_m'][k,:] += self.dT_dh[:,k,j] * arg['w_RW'][j,:] * self.J_RW
 
     def apply_derivT(self, arg, result):
 
-        for k in range(3):
-            for j in range(3):
-                if 'T_m' in arg:
-                    result['T_RW'][j,:] += self.dT_dTm[:,k,j] * arg['T_m'][k,:]
-                    result['w_B'][j,:] += self.dT_dwb[:,k,j] * arg['T_m'][k,:]
-                    result['w_RW'][j,:] += self.dT_dh[:,k,j] * arg['T_m'][k,:] * self.J_RW
+        if 'T_m' in arg:
+            for k in range(3):
+                for j in range(3):
+                    if 'T_RW' in result:
+                        result['T_RW'][j,:] += self.dT_dTm[:,k,j] * arg['T_m'][k,:]
+                    if 'w_B' in result:
+                        result['w_B'][j,:] += self.dT_dwb[:,k,j] * arg['T_m'][k,:]
+                    if 'w_RW' in result:
+                        result['w_RW'][j,:] += self.dT_dh[:,k,j] * arg['T_m'][k,:] * self.J_RW
 
 
 class ReactionWheel_Power(Component):
@@ -112,18 +116,22 @@ class ReactionWheel_Power(Component):
                 self.P_RW[k,i] = self.V * (self.a * self.w_RW[k,i] + self.b * self.T_RW[k,i])**2 + self.V * self.I0
 
     def apply_deriv(self, arg, result):
-        for k in range(3):
-            if 'w_RW' in arg:
-                result['P_RW'][k,:] += self.dP_dw[:,k] * arg['w_RW'][k,:]
-            if 'T_RW' in arg:
-                result['P_RW'][k,:] += self.dP_dT[:,k] * arg['T_RW'][k,:]
+        
+        if 'P_RW' in result:
+            for k in range(3):
+                if 'w_RW' in arg:
+                    result['P_RW'][k,:] += self.dP_dw[:,k] * arg['w_RW'][k,:]
+                if 'T_RW' in arg:
+                    result['P_RW'][k,:] += self.dP_dT[:,k] * arg['T_RW'][k,:]
 
     def apply_derivT(self, arg, result):
 
-        for k in range(3):
-            if 'P_RW' in arg:
-                result['w_RW'][k,:] += self.dP_dw[:,k] * arg['P_RW'][k,:]
-                result['T_RW'][k,:] += self.dP_dT[:,k] * arg['P_RW'][k,:]
+        if 'P_RW' in arg:
+            for k in range(3):
+                if 'w_RW' in result:
+                    result['w_RW'][k,:] += self.dP_dw[:,k] * arg['P_RW'][k,:]
+                if 'T_RW' in result:
+                    result['T_RW'][k,:] += self.dP_dT[:,k] * arg['P_RW'][k,:]
 
 
 class ReactionWheel_Torque(Component):
@@ -141,12 +149,12 @@ class ReactionWheel_Torque(Component):
 
     def apply_deriv(self, arg, result):
 
-        if 'T_tot' in arg:
+        if 'T_tot' in arg and 'T_RW' in result:
             result['T_RW'][:] += arg['T_tot'][:]
 
     def apply_derivT(self, arg, result):
 
-        if 'T_RW' in arg:
+        if 'T_RW' in arg and 'T_tot' in result:
             result['T_tot'][:] += arg['T_RW'][:]
 
 

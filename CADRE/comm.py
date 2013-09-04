@@ -332,15 +332,15 @@ class Comm_EarthsSpin(Component):
 
     def apply_deriv(self, arg, result):
 
-        if 't' in arg:
+        if 't' in arg and 'q_E' in result:
             for k in range(4):
-                result['q_E'][k,:] += self.dq_dt[:,k] * arg['t'][:]
+                result['q_E'][k, :] += self.dq_dt[:, k] * arg['t']
 
     def apply_derivT(self, arg, result):
 
-        if 'q_E' in arg:
+        if 'q_E' in arg and 't' in result:
             for k in range(4):
-                result['t'][:] += self.dq_dt[:,k] * arg['q_E'][k,:]
+                result['t'] += self.dq_dt[:, k] * arg['q_E'][k, :]
 
 
 class Comm_EarthsSpinMtx(Component):

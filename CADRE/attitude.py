@@ -57,7 +57,7 @@ class Attitude_Angular(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'O_BI' in arg and 'Odot_BI' in arg:
+        if 'O_BI' in arg and 'Odot_BI' in arg and 'w_B' in result:
             for k in xrange(3):
                 for i in xrange(3):
                     for j in xrange(3):
@@ -69,7 +69,7 @@ class Attitude_Angular(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'w_B' in arg:
+        if 'w_B' in arg and 'O_BI' in result and 'Odot_BI' in result:
             for k in xrange(3):
                 for i in xrange(3):
                     for j in xrange(3):
@@ -115,7 +115,7 @@ class Attitude_AngularRates(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'w_B' in arg:
+        if 'w_B' in arg and 'wdot_B' in result:
             for k in xrange(3):
                 result['wdot_B'][k, 0] += arg['w_B'][k, 1] / self.h
                 result['wdot_B'][k, 0] -= arg['w_B'][k, 0] / self.h
@@ -127,7 +127,7 @@ class Attitude_AngularRates(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'wdot_B' in arg:
+        if 'wdot_B' in arg and 'w_B' in result:
             for k in xrange(3):
                 result['w_B'][k, 1] += arg['wdot_B'][k, 0] / self.h
                 result['w_B'][k, 0] -= arg['wdot_B'][k, 0] / self.h
@@ -263,7 +263,7 @@ class Attitude_Attitude(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'r_e2b_I' in arg:
+        if 'r_e2b_I' in arg and 'O_RI' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     for i in xrange(6):
@@ -273,7 +273,7 @@ class Attitude_Attitude(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'O_RI' in arg:
+        if 'O_RI' in arg and 'r_e2b_I' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     for i in xrange(6):
@@ -336,7 +336,7 @@ class Attitude_Roll(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'Gamma' in arg:
+        if 'Gamma' in arg and 'O_BR' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['O_BR'][k, j, :] += self.dO_dg[:, k, j] * \
@@ -345,7 +345,7 @@ class Attitude_Roll(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'O_BR' in arg:
+        if 'O_BR' in arg and 'Gamma' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['Gamma'] += self.dO_dg[:, k, j] * \
@@ -387,7 +387,7 @@ class Attitude_RotationMtx(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'O_RI' in arg and 'O_BR' in arg:
+        if 'O_RI' in arg and 'O_BR' in arg and 'O_BI' in result:
             for u in xrange(3):
                 for v in xrange(3):
                     for k in xrange(3):
@@ -399,7 +399,7 @@ class Attitude_RotationMtx(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'O_BI' in arg:
+        if 'O_BI' in arg and 'O_RI' in result and 'O_BR' in result:
             for u in xrange(3):
                 for v in xrange(3):
                     for k in xrange(3):
@@ -448,7 +448,7 @@ class Attitude_RotationMtxRates(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'O_BI' in arg:
+        if 'O_BI' in arg and 'Odot_BI' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['Odot_BI'][k, j, 0] += arg['O_BI'][k, j, 1] / self.h
@@ -465,7 +465,7 @@ class Attitude_RotationMtxRates(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'Odot_BI' in arg:
+        if 'Odot_BI' in arg and 'O_BI' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['O_BI'][k, j, 1] += arg['Odot_BI'][k, j, 0] / self.h
@@ -513,7 +513,7 @@ class Attitude_Sideslip(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'O_BI' in arg and 'r_e2b_I' in arg:
+        if 'O_BI' in arg and 'r_e2b_I' in arg and 'v_e2b_B' in result:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
@@ -526,7 +526,7 @@ class Attitude_Sideslip(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'v_e2b_B' in arg:
+        if 'v_e2b_B' in arg and 'O_BI' in result and 'r_e2b_I' in result:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
@@ -604,7 +604,7 @@ class Attitude_Torque(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'w_B' in arg and 'wdot_B' in arg:
+        if 'w_B' in arg and 'wdot_B' in arg and 'T_tot' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['T_tot'][k, :] += self.dT_dw[:, k, j] * \
@@ -615,7 +615,7 @@ class Attitude_Torque(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'T_tot' in arg:
+        if 'T_tot' in arg and 'w_B' in result and 'wdot_B' in result:
             for k in xrange(3):
                 for j in xrange(3):
                     result['w_B'][j, :] += self.dT_dw[:, k, j] * \
