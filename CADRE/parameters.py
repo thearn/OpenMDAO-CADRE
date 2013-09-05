@@ -45,9 +45,6 @@ class BsplineParameters(Component):
             self.Isetpt[k, :] = self.B.dot(self.CP_Isetpt[k, :])
 
     def apply_deriv(self, arg, result):
-        result['P_comm'] = np.zeros((self.n,))
-        result['Gamma'] = np.zeros((self.n,))
-        result['Isetpt'] = np.zeros((12,self.n))
 
         if 'CP_P_comm' in arg:
             result['P_comm'] += self.B.dot(arg['CP_P_comm'])
@@ -58,9 +55,6 @@ class BsplineParameters(Component):
                 result['Isetpt'][k, :] += self.B.dot(arg['CP_Isetpt'][k, :])
 
     def apply_derivT(self, arg, result):
-        result['CP_P_comm'] = np.zeros((self.m,))
-        result['CP_gamma'] = np.zeros((self.m,))
-        result['CP_Isetpt'] = np.zeros((12, self.m))
 
         if 'P_comm' in arg:
             result['CP_P_comm'] += self.BT.dot(arg['P_comm'])

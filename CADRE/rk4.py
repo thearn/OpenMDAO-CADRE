@@ -238,7 +238,7 @@ class RK4(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        result = self._applyJint(arg, result)
+        #result = self._applyJint(arg, result)
         result_ext = self._applyJext(arg)
 
         svar = self.state_var
@@ -251,14 +251,13 @@ class RK4(Component):
     def _applyJint(self, arg, result):
         """Apply derivatives with respect to state variables."""
 
-        arg = dict([(self.reverse_name_map[k], v) \
-                    for k, v in arg.iteritems()])
         res1 = dict([(self.reverse_name_map[k], v) \
                      for k, v in result.iteritems()])
 
-        if "y" in arg:
-            flat_y = arg['y'].reshape((self.n_states*self.n))
-            result["y"] = self.J.dot(flat_y).reshape((self.n_states,self.n))
+        state = self.state_var
+        if state in arg:
+            flat_y = arg[state].reshape((self.n_states*self.n))
+            result["y"] = self.J.dot(flat_y).reshape((self.n_states, self.n))
 
         res1 = dict([(self.name_map[k],v) for k, v in res1.iteritems()])
         return res1
@@ -311,14 +310,14 @@ class RK4(Component):
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        r1 = self.applyJintT(arg, result)
+        #r1 = self.applyJintT(arg, result)
         r2 = self._applyJextT(arg, result)
 
         for k, v in r2.iteritems():
-            if k in r1 and r1[k] is not None:
-                r1[k] += v
+            if k in result and result[k] is not None:
+                result[k] += v
             else:
-                r1[k] = v
+                result[k] = v
 
     def applyJintT(self, arg, result):
         """Apply derivatives with respect to state variables."""

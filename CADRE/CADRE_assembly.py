@@ -25,12 +25,12 @@ from power import Power_CellVoltage, Power_SolarPower, Power_Total
 #Comm_DataDownloaded, BatterySOC, ThermalTemperature, Orbit_Dynamics
 
 class CADRE(Assembly):
+    """ OpenMDAO implementation of the CADRE model
     """
-    OpenMDAO implementation of the CADRE model
-    """
+    
     def __init__(self, n, m, solar_raw1, solar_raw2, comm_raw, power_raw):
+        
         super(CADRE, self).__init__()
-        self.self = self
 
         # Analysis parameters
         self.n = n
@@ -45,7 +45,7 @@ class CADRE(Assembly):
         self.t = np.array(range(0, n))*h
 
         # Design parameters
-        self.add('CP_Isetpt', Array(np.zeros((12,self.m)), size=(12,self.m), dtype=float,
+        self.add('CP_Isetpt', Array(np.zeros((12, self.m)), size=(12, self.m), dtype=float,
                                     iotype='in'))
         self.add('CP_gamma', Array(np.zeros((self.m,)), size=(self.m,), dtype=float,
                                    iotype='in'))
@@ -55,7 +55,7 @@ class CADRE(Assembly):
             Array([1.0], shape=(1, ), dtype=np.float,
                 iotype="in", desc="initial state of charge")
         )
-        self.add("cellInstd", Array(np.ones((7,12)), size=(7,12), dtype=np.float,
+        self.add("cellInstd", Array(np.ones((7, 12)), size=(7, 12), dtype=np.float,
             iotype="in", desc="Cell/Radiator indication", low=0, high=1)
         )
         self.add("finAngle", Float(0., iotype="in", copy=None))
@@ -125,7 +125,7 @@ class CADRE(Assembly):
 
         self.add("Comm_DataDownloaded", Comm_DataDownloaded(n))
         self.driver.workflow.add("Comm_DataDownloaded")
-        self.create_passthrough("Comm_DataDownloaded.Data")
+        self.create_passthrough("Comm_DataDownloaded.Data_Final")
 
         self.add("Comm_Distance", Comm_Distance(n))
         self.driver.workflow.add("Comm_Distance")
@@ -283,6 +283,7 @@ class CADRE(Assembly):
         long as the variable name does not exist as an output to more than
         a single component (so excludes default outputs)
         """
+        
         inputs, outputs = {}, {}
         for compname in self.list_components():
 
@@ -302,14 +303,13 @@ class CADRE(Assembly):
                 else:
                     outputs[output_name].append(compname)
 
-        print
-
         assym_level = self.list_inputs()
         assym_level.remove('directory')
         assym_level.remove('force_execute')
 
         for var in assym_level:
             outputs[var] = ['']
+            
         for varname in outputs.keys():
             comps = outputs[varname]
             if len(comps) > 1:
