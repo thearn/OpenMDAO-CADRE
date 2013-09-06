@@ -16,11 +16,18 @@ class Comm_DataDownloaded(rk4.RK4):
     def __init__(self, n_times):
         super(Comm_DataDownloaded, self).__init__()
 
+        # Inputs
+        self.add('Dr', Array(np.zeros(n_times), iotype='in', shape=(n_times,)))
+        
+        # Initial State
         self.add('Data0', Array([0.0], iotype='in', shape=(1,)))
+        
+        # States
         self.add('Data', Array(np.zeros((1, n_times)), iotype='out',
                                shape=(1, n_times)))
 
-        self.add('Dr', Array(np.zeros(n_times), iotype='in', shape=(n_times,)))
+        # Final Output
+        self.add('Data_Final', Float(0.0, iotype='out'))
 
 
         self.state_var = "Data"
@@ -38,7 +45,14 @@ class Comm_DataDownloaded(rk4.RK4):
 
     def df_dx(self, external, state):
         return self.dfdx
+    
+    def execute(self):
+        """After we run RK45, store final data result in self.Data_Final.
+        """
 
+        super(Comm_DataDownloaded, self).execute()
+        self.Data_Final = self.Data[0, -1]
+        
 
 class Comm_AntRotation(Component):
 
@@ -332,15 +346,15 @@ class Comm_EarthsSpin(Component):
 
     def apply_deriv(self, arg, result):
 
-        if 't' in arg:
+        if 't' in arg and 'q_E' in result:
             for k in range(4):
-                result['q_E'][k,:] += self.dq_dt[:,k] * arg['t'][:]
+                result['q_E'][k, :] += self.dq_dt[:, k] * arg['t']
 
     def apply_derivT(self, arg, result):
 
-        if 'q_E' in arg:
+        if 'q_E' in arg and 't' in result:
             for k in range(4):
-                result['t'][:] += self.dq_dt[:,k] * arg['q_E'][k,:]
+                result['t'] += self.dq_dt[:, k] * arg['q_E'][k, :]
 
 
 class Comm_EarthsSpinMtx(Component):

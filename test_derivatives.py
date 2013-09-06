@@ -12,20 +12,19 @@ from CADRE.attitude import Attitude_Angular, Attitude_AngularRates, \
      Attitude_Attitude, Attitude_Roll, Attitude_RotationMtx, \
      Attitude_RotationMtxRates, Attitude_Sideslip, Attitude_Torque
 from CADRE.battery import BatteryConstraints, BatteryPower, BatterySOC
-from CADRE.parameters import BsplineParameters
 from CADRE.comm import Comm_AntRotation, Comm_AntRotationMtx, Comm_BitRate, \
      Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
      Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
      Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
-#from MultiPtParameters import MultiPtParameters ??
 from CADRE.orbit import Orbit_Initial, Orbit_Dynamics
+from CADRE.parameters import BsplineParameters
+from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 from CADRE.reactionwheel import ReactionWheel_Motor, ReactionWheel_Power, \
      ReactionWheel_Torque, ReactionWheel_Dynamics
 from CADRE.solar import Solar_ExposedArea
-from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI,\
+from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, \
      Sun_PositionSpherical
 from CADRE.thermal_temperature import ThermalTemperature
-from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
 NTIME = 5
@@ -598,6 +597,25 @@ class Testcase_CADRE(unittest.TestCase):
         state0 = []
 
         self.setup(compname, inputs, state0)
+        self.run_model()
+        self.compare_derivatives(inputs, outputs)
+
+    def test_bspline_parameters(self):
+
+        compname = 'BsplineParameters'
+        inputs = ['CP_P_comm', 'CP_gamma', 'CP_Isetpt']
+        outputs = ['P_comm', 'Gamma', 'Isetpt']
+        state0 = []
+
+
+        self.model.add('comp', BsplineParameters(NTIME, 5))
+        self.model.driver.workflow.add('comp')
+
+        for item in inputs:
+            val = self.model.comp.get(item)
+            shape1 = val.shape
+            self.model.comp.set(item, np.random.random(shape1))
+                
         self.run_model()
         self.compare_derivatives(inputs, outputs)
 

@@ -52,8 +52,8 @@ class CADRE_Optimization(Assembly):
             for k in xrange(12):
                 print "adding parameter: CP_Isetpt",k
                 for j in xrange(m):
-                    param = ''.join(["pt", str(i), ".CP_Isetpt[", str(k), "][",
-                                     str(j), "]"])
+                    param = ''.join(["pt", str(i), ".CP_Isetpt[(", str(k), ", ",
+                                     str(j), ")]"])
                     self.driver.add_parameter(param, low=0, high=0.4)
             for k in xrange(m):
                 print "adding parameter: CP_gamma",k
@@ -99,7 +99,7 @@ class CADRE_Optimization(Assembly):
         self.driver.add_parameter(antangles, low=0, high=np.pi)
 
         #add objective
-        obj = ''.join([''.join(["-pt",str(i),".Data[0,-1]"]) for i in xrange(npts)])
+        obj = ''.join([''.join(["-pt",str(i),".Data_Final"]) for i in xrange(npts)])
         self.driver.add_objective(obj)
 
 if __name__ == "__main__":

@@ -196,18 +196,20 @@ class Orbit_Initial(Component):
 
         J = self.J
 
-        result['r_e2b_I0'][:3] += J[:3,0]*arg['altPerigee'] + \
-                                  J[:3,1]*arg['altApogee'] + \
-                                  J[:3,2]*arg['RAAN'] + \
-                                  J[:3,3]*arg['Inc'] + \
-                                  J[:3,4]*arg['argPerigee'] + \
-                                  J[:3,5]*arg['trueAnomaly']
-        result['r_e2b_I0'][3:] += J[3:,0]*arg['altPerigee'] + \
-                                  J[3:,1]*arg['altApogee'] + \
-                                  J[3:,2]*arg['RAAN'] + \
-                                  J[3:,3]*arg['Inc'] + \
-                                  J[3:,4]*arg['argPerigee'] + \
-                                  J[3:,5]*arg['trueAnomaly']
+        if 'r_e2b_I0' in result:
+            result['r_e2b_I0'][:3] += J[:3,0]*arg['altPerigee'] + \
+                                      J[:3,1]*arg['altApogee'] + \
+                                      J[:3,2]*arg['RAAN'] + \
+                                      J[:3,3]*arg['Inc'] + \
+                                      J[:3,4]*arg['argPerigee'] + \
+                                      J[:3,5]*arg['trueAnomaly']
+            
+            result['r_e2b_I0'][3:] += J[3:,0]*arg['altPerigee'] + \
+                                      J[3:,1]*arg['altApogee'] + \
+                                      J[3:,2]*arg['RAAN'] + \
+                                      J[3:,3]*arg['Inc'] + \
+                                      J[3:,4]*arg['argPerigee'] + \
+                                      J[3:,5]*arg['trueAnomaly']
 
 
     def apply_derivT(self, arg, result):

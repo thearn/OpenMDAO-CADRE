@@ -168,24 +168,32 @@ class BatteryPower(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        if 'P_bat' in arg:
-            result['I_bat'] += self.dI_dP * arg['P_bat']
-        if 'temperature' in arg:
-            result['I_bat'] += self.dI_dT * arg['temperature'][4, :]
-        if 'SOC' in arg:
-            result['I_bat'] += self.dI_dSOC * arg['SOC'][0, :]
+        if 'I_bat' in result:
+            
+            if 'P_bat' in arg:
+                result['I_bat'] += self.dI_dP * arg['P_bat']
+                
+            if 'temperature' in arg:
+                result['I_bat'] += self.dI_dT * arg['temperature'][4, :]
+                
+            if 'SOC' in arg:
+                result['I_bat'] += self.dI_dSOC * arg['SOC'][0, :]
 
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'I_bat' in arg:
-            result['P_bat'] += self.dI_dP * arg['I_bat']
+            
+            if 'P_bat' in result:
+                result['P_bat'] += self.dI_dP * arg['I_bat']
 
-            result['temperature'] += np.zeros(self.temperature.shape)
-            result['temperature'][4, :] += self.dI_dT * arg['I_bat']
+            if 'temperature' in result:
+                result['temperature'] += np.zeros(self.temperature.shape)
+                result['temperature'][4, :] += self.dI_dT * arg['I_bat']
 
-            result['SOC'] += np.zeros(self.SOC.shape)
-            result['SOC'][0, :] += self.dI_dSOC * arg['I_bat']
+            if 'SOC' in result:
+                result['SOC'] += np.zeros(self.SOC.shape)
+                result['SOC'][0, :] += self.dI_dSOC * arg['I_bat']
 
 
 
@@ -245,23 +253,31 @@ class BatteryConstraints(Component):
         """ Matrix-vector product with the Jacobian. """
 
         if 'I_bat' in arg:
-            result['ConCh'] += np.dot(self.dCh_dg, arg['I_bat'])
-            result['ConDs'] -= np.dot(self.dDs_dg, arg['I_bat'])
+            if 'ConCh' in result:
+                result['ConCh'] += np.dot(self.dCh_dg, arg['I_bat'])
+            if 'ConDs' in result:
+                result['ConDs'] -= np.dot(self.dDs_dg, arg['I_bat'])
+                
         if 'SOC' in arg:
-            result['ConS0'] -= np.dot(self.dS0_dg, arg['SOC'][0, :])
-            result['ConS1'] += np.dot(self.dS1_dg, arg['SOC'][0, :])
+            if 'ConS0' in result:
+                result['ConS0'] -= np.dot(self.dS0_dg, arg['SOC'][0, :])
+            if 'ConS1' in result:
+                result['ConS1'] += np.dot(self.dS1_dg, arg['SOC'][0, :])
 
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
-        if 'ConCh' in arg:
-            result['I_bat'] += self.dCh_dg * arg['ConCh']
-        if 'ConDs' in arg:
-            result['I_bat'] -= self.dDs_dg * arg['ConDs']
-        if 'ConS0' in arg:
-            result['SOC'] -= self.dS0_dg * arg['ConS0']
-        if 'ConS1' in arg:
-            result['SOC'] += self.dS1_dg * arg['ConS1']
+        if 'I_bat' in result:
+            if 'ConCh' in arg:
+                result['I_bat'] += self.dCh_dg * arg['ConCh']
+            if 'ConDs' in arg:
+                result['I_bat'] -= self.dDs_dg * arg['ConDs']
+                
+        if 'SOC' in result:
+            if 'ConS0' in arg:
+                result['SOC'] -= self.dS0_dg * arg['ConS0']
+            if 'ConS1' in arg:
+                result['SOC'] += self.dS1_dg * arg['ConS1']
 
 
 
