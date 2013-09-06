@@ -238,7 +238,10 @@ class CADRE(Assembly):
         for compname in self.list_components() + ['self']:
             if compname == "driver":
                 continue
-            comp = self.get(compname)
+            if compname == 'self':
+                comp = self
+            else:
+                comp = self.get(compname)
             for var in comp.list_inputs():
                 if var in defaults:
                     continue
