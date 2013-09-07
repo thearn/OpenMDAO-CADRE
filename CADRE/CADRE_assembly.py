@@ -125,7 +125,8 @@ class CADRE(Assembly):
 
         self.add("Comm_DataDownloaded", Comm_DataDownloaded(n))
         self.driver.workflow.add("Comm_DataDownloaded")
-        self.create_passthrough("Comm_DataDownloaded.Data_Final")
+        #self.create_passthrough("Comm_DataDownloaded.Data_Final")
+        self.create_passthrough("Comm_DataDownloaded.Data")
 
         self.add("Comm_Distance", Comm_Distance(n))
         self.driver.workflow.add("Comm_Distance")

@@ -33,10 +33,6 @@ class Comm_DataDownloaded(rk4.RK4):
         self.add('Data', Array(np.zeros((1, n_times)), iotype='out',
                                shape=(1, n_times)))
 
-        # Final Output
-        self.add('Data_Final', Float(0.0, iotype='out'))
-
-
         self.state_var = "Data"
         self.init_state_var = "Data0"
         self.external_vars = ["Dr"]
@@ -52,14 +48,6 @@ class Comm_DataDownloaded(rk4.RK4):
 
     def df_dx(self, external, state):
         return self.dfdx
-
-    def execute(self):
-        """After we run RK45, store final data result in self.Data_Final.
-        """
-
-        super(Comm_DataDownloaded, self).execute()
-        self.Data_Final = self.Data[0, -1]
-
 
 class Comm_AntRotation(Component):
     ''' Fixed antenna angle to time history of the quaternion '''
@@ -682,60 +670,72 @@ class Comm_GSposEarth(Component):
 
 
 class Comm_GSposECI(Component):
+    ''' Convert time history of ground station position from earth frame
+    to inertial frame
+    '''
 
     def __init__(self, n):
         super(Comm_GSposECI, self).__init__()
         self.n = n
 
-        self.add('r_e2g_I', Array(np.zeros((3, self.n)), iotype='out',
-                                  shape=(3, self.n)))
-
+        # Inputs
         self.add('O_IE', Array(np.zeros((3, 3, self.n)), iotype='in',
                                shape=(3, 3, self.n)))
         self.add('r_e2g_E', Array(np.zeros((3, self.n)), iotype='in',
                                   shape=(3, self.n)))
 
-    def linearize(self):
+        # Outputs
+        self.add('r_e2g_I', Array(np.zeros((3, self.n)), iotype='out',
+                                  shape=(3, self.n)))
 
-        eye = np.eye(3)
+    def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
 
         self.J1 = np.zeros((self.n, 3, 3, 3))
-        self.J2 = np.zeros((self.n, 3, 3))
 
-        for i in range(0, self.n):
-            for k in range(0, 3):
-                for u in range(0, 3):
-                    for v in range(0, 3):
-                        self.J1[i,k,u,v] = eye[k,u]*self.r_e2g_E[v,i]
-                for j in range(0,3):
-                    self.J2[i,k,j] = self.O_IE[k,j,i]
+        for k in range(0, 3):
+            for v in range(0, 3):
+                self.J1[:, k, k, v] = self.r_e2g_E[v, :]
+                    
+        self.J2 = np.transpose(self.O_IE, (2, 0, 1))
 
     def execute(self):
-        for i in range(0,self.n):
-            self.r_e2g_I[:,i] = np.dot(self.O_IE[:,:,i],self.r_e2g_E[:,i])
+        """ Calculate output. """
+         
+        for i in range(0, self.n):
+            self.r_e2g_I[:, i] = np.dot(self.O_IE[:, :, i], 
+                                        self.r_e2g_E[:, i])
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'O_IE' in arg and 'r_e2g_E' in arg:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
-                        result['r_e2g_I'][k,:] += self.J1[:,k,u,v] * arg['O_IE'][u,v,:]
-                for j in xrange(3):
-                    result['r_e2g_I'][k,:] += self.J2[:,k,j] * arg['r_e2g_E'][j,:]
+                        result['r_e2g_I'][k, :] += self.J1[:, k, u, v] * \
+                                                   arg['O_IE'][u, v, :]
+                        
+                    result['r_e2g_I'][k, :] += self.J2[:, k, u] * \
+                                               arg['r_e2g_E'][u, :]
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'r_e2g_I' in arg:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
-                        result['O_IE'][u,v,:] += self.J1[:,k,u,v] * arg['r_e2g_I'][k,:]
+                        result['O_IE'][u, v, :] += self.J1[:, k, u, v] * \
+                                                   arg['r_e2g_I'][k, :]
                 for j in xrange(3):
-                    result['r_e2g_E'][j,:] += self.J2[:,k,j] * arg['r_e2g_I'][k,:]
+                    result['r_e2g_E'][j, :] += self.J2[:, k, j] * \
+                                               arg['r_e2g_I'][k, :]
 
 
 class Comm_LOS(Component):
+    ''' Determines if the Satellite has line of sight with the ground
+    stations. '''
 
     #constants
     Re = 6378.137
@@ -744,42 +744,49 @@ class Comm_LOS(Component):
         super(Comm_LOS, self).__init__()
         self.n = n
 
-        self.add('CommLOS', Array(np.zeros(n), iotype='out', shape=(self.n,)))
-
+        # Inputs
         self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='in',
                                   shape=(3, self.n)))
         self.add('r_e2g_I', Array(np.zeros((3, n)), iotype='in',
                                   shape=(3, self.n)))
 
+        # Outputs
+        self.add('CommLOS', Array(np.zeros(n), iotype='out', shape=(self.n, )))
+
     def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
 
         self.dLOS_drb = np.zeros((self.n, 3))
         self.dLOS_dre = np.zeros((self.n, 3))
-        dproj_drb = np.zeros(3)
-        dproj_dre = np.zeros(3)
 
         Rb = 10.0
         for i in range(0, self.n):
-            proj = np.dot(self.r_b2g_I[:,i], self.r_e2g_I[:,i]) / self.Re
-            dproj_drb[:] = self.r_e2g_I[:,i]
-            dproj_dre[:] = self.r_b2g_I[:,i]
+            
+            proj = np.dot(self.r_b2g_I[:, i], self.r_e2g_I[:, i]) / self.Re
+            
             if proj > 0:
-                self.dLOS_drb[i,:] = 0.
-                self.dLOS_dre[i,:] = 0.
+                self.dLOS_drb[i, :] = 0.
+                self.dLOS_dre[i, :] = 0.
             elif proj < -Rb:
-                self.dLOS_drb[i,:] = 0.
-                self.dLOS_dre[i,:] = 0.
+                self.dLOS_drb[i, :] = 0.
+                self.dLOS_dre[i, :] = 0.
             else:
                 x = (proj - 0) / (-Rb - 0)
                 dx_dproj = -1. / Rb
                 dLOS_dx = 6*x - 6*x**2
-                self.dLOS_drb[i,:] = dLOS_dx * dx_dproj * dproj_drb[:]
-                self.dLOS_dre[i,:] = dLOS_dx * dx_dproj * dproj_dre[:]
+                dproj_drb = self.r_e2g_I[:, i]
+                dproj_dre = self.r_b2g_I[:, i]
+                
+                self.dLOS_drb[i, :] = dLOS_dx * dx_dproj * dproj_drb
+                self.dLOS_dre[i, :] = dLOS_dx * dx_dproj * dproj_dre
 
     def execute(self):
+        """ Calculate output. """
+        
         Rb = 100.0
-        for i in range(0,self.n):
-            proj = np.dot(self.r_b2g_I[:,i], self.r_e2g_I[:,i]) / self.Re
+        for i in range(0, self.n):
+            proj = np.dot(self.r_b2g_I[:, i], self.r_e2g_I[:, i]) / self.Re
+            
             if proj > 0:
                 self.CommLOS[i] = 0.
             elif proj < -Rb:
@@ -789,18 +796,20 @@ class Comm_LOS(Component):
                 self.CommLOS[i] = 3*x**2 - 2*x**3
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'r_b2g_I' in arg:
             for k in xrange(3):
-                result['CommLOS'] += self.dLOS_drb[:,k] * arg['r_b2g_I'][k,:]
-                result['CommLOS'] += self.dLOS_dre[:,k] * arg['r_e2g_I'][k,:]
+                result['CommLOS'] += self.dLOS_drb[:, k] * arg['r_b2g_I'][k, :]
+                result['CommLOS'] += self.dLOS_dre[:, k] * arg['r_e2g_I'][k, :]
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'CommLOS' in arg:
             for k in xrange(3):
-                result['r_b2g_I'][k,:] += self.dLOS_drb[:,k] * arg['CommLOS']
-                result['r_e2g_I'][k,:] += self.dLOS_dre[:,k] * arg['CommLOS']
+                result['r_b2g_I'][k, :] += self.dLOS_drb[:, k] * arg['CommLOS']
+                result['r_e2g_I'][k, :] += self.dLOS_dre[:, k] * arg['CommLOS']
 
 
 class Comm_VectorAnt(Component):
@@ -809,157 +818,203 @@ class Comm_VectorAnt(Component):
         super(Comm_VectorAnt, self).__init__()
         self.n = n
 
-        self.add('r_b2g_A', Array(np.zeros((3, n)), iotype='out', shape=(3, n)))
-
+        # Inputs
         self.add('r_b2g_B', Array(np.zeros((3, n)), iotype='in', shape=(3, n)))
         self.add('O_AB', Array(np.zeros((3, 3, n)), iotype='in',
                                shape=(3, 3, n)))
 
+        # Outputs
+        self.add('r_b2g_A', Array(np.zeros((3, n)), iotype='out', 
+                                  shape=(3, n)))
+
     def linearize(self):
-        self.J1, self.J2 = computepositionrotdjacobian(self.n, self.r_b2g_B,self.O_AB)
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        
+        self.J1, self.J2 = computepositionrotdjacobian(self.n, self.r_b2g_B, 
+                                                       self.O_AB)
 
     def execute(self):
-        self.r_b2g_A = computepositionrotd(self.n, self.r_b2g_B,self.O_AB)
+        """ Calculate output. """
+        
+        self.r_b2g_A = computepositionrotd(self.n, self.r_b2g_B, self.O_AB)
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'O_AB' in arg and 'r_b2g_B' in arg:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
-                        result['r_b2g_A'][k,:] += self.J1[:,k,u,v] * arg['O_AB'][u,v,:]
+                        result['r_b2g_A'][k, :] += self.J1[:, k, u, v] * \
+                                                   arg['O_AB'][u, v, :]
                 for j in xrange(3):
-                    result['r_b2g_A'][k,:] += self.J2[:,k,j] * arg['r_b2g_B'][j,:]
+                    result['r_b2g_A'][k, :] += self.J2[:, k, j] * \
+                                               arg['r_b2g_B'][j, :]
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'r_b2g_A' in arg:
             for k in xrange(3):
                 for u in xrange(3):
                     for v in xrange(3):
-                        result['O_AB'][u,v,:] += self.J1[:,k,u,v] * arg['r_b2g_A'][k,:]
+                        result['O_AB'][u, v, :] += self.J1[:, k, u, v] * \
+                                                   arg['r_b2g_A'][k, :]
                 for j in xrange(3):
-                    result['r_b2g_B'][j,:] += self.J2[:,k,j] * arg['r_b2g_A'][k,:]
+                    result['r_b2g_B'][j, :] += self.J2[:, k, j] * \
+                                               arg['r_b2g_A'][k, :]
 
 
 class Comm_VectorBody(Component):
+    '''Transform from body to inertial frame'''
 
     def __init__(self, n):
         super(Comm_VectorBody, self).__init__()
         self.n = n
 
-        self.add('r_b2g_B', Array(np.zeros((3, n)), iotype='out', shape=(3, n)))
-
-        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='in', shape=(3, n)))
+        # Inputs
+        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='in', 
+                                  shape=(3, n)))
         self.add('O_BI', Array(np.zeros((3, 3, n)), iotype='in',
                                shape=(3, 3, n)))
 
+        # Outputs
+        self.add('r_b2g_B', Array(np.zeros((3, n)), iotype='out', 
+                                  shape=(3, n)))
+
     def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
 
-        eye = np.eye(3)
         self.J1 = np.zeros((self.n, 3, 3, 3))
-        self.J2 = np.zeros((self.n, 3, 3))
 
-        for i in range(0, self.n):
-            for k in range(0, 3):
-                for u in range(0, 3):
-                    for v in range(0, 3):
-                        self.J1[i,k,u,v] = eye[k,u]*self.r_b2g_I[v,i]
-                for j in range(0,3):
-                    self.J2[i,k,j] = self.O_BI[k,j,i]
+        for k in range(0, 3):
+            for v in range(0, 3):
+                self.J1[:, k, k, v] = self.r_b2g_I[v, :]
+                    
+        self.J2 = np.transpose(self.O_BI, (2, 0, 1))                    
 
     def execute(self):
-        for i in range(0,self.n):
-            self.r_b2g_B[:,i] = np.dot(self.O_BI[:,:,i],self.r_b2g_I[:,i])
+        """ Calculate output. """
+        
+        for i in range(0, self.n):
+            self.r_b2g_B[:, i] = np.dot(self.O_BI[:, :, i], self.r_b2g_I[:, i])
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'O_BI' in arg and 'r_b2g_I' in arg:
             for k in range(3):
                 for u in range(3):
                     for v in range(3):
-                        result['r_b2g_B'][k,:] += self.J1[:,k,u,v] * arg['O_BI'][u,v,:]
+                        result['r_b2g_B'][k, :] += self.J1[:, k, u, v] * \
+                                                   arg['O_BI'][u, v, :]
                 for j in range(3):
-                    result['r_b2g_B'][k,:] += self.J2[:,k,j] * arg['r_b2g_I'][j,:]
+                    result['r_b2g_B'][k, :] += self.J2[:, k, j] * \
+                                               arg['r_b2g_I'][j, :]
 
     def apply_derivT(self, arg, result):
-
+        """ Matrix-vector product with the transpose of the Jacobian. """
+        
         if 'r_b2g_B' in arg:
             for k in range(3):
                 for u in range(3):
                     for v in range(3):
-                        result['O_BI'][u,v,:] += self.J1[:,k,u,v] * arg['r_b2g_B'][k,:]
+                        result['O_BI'][u, v, :] += self.J1[:, k, u, v] * \
+                                                   arg['r_b2g_B'][k, :]
                 for j in range(3):
-                    result['r_b2g_I'][j,:] += self.J2[:,k,j] * arg['r_b2g_B'][k,:]
+                    result['r_b2g_I'][j, :] += self.J2[:, k, j] * \
+                                               arg['r_b2g_B'][k, :]
 
 
 class Comm_VectorECI(Component):
+    '''Determine vector between satellite and ground station.'''
 
     def __init__(self, n):
         super(Comm_VectorECI, self).__init__()
         self.n = n
 
-        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='out', shape=(3, n)))
-
+        # Inputs
         self.add('r_e2g_I', Array(np.zeros((3, n)), iotype='in', shape=(3, n)))
         self.add('r_e2b_I', Array(np.zeros((6, n)), iotype='in', shape=(6, n)))
 
+        # Outputs
+        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='out', 
+                                  shape=(3, n)))
+
     def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        # Derivatives are simple
         return
 
     def execute(self):
+        """ Calculate output. """
+        
         self.r_b2g_I = self.r_e2g_I - self.r_e2b_I[:3, :]
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'r_e2g_I' in arg and 'r_e2b_I' in arg:
             result['r_b2g_I'] += arg['r_e2g_I']
             result['r_b2g_I'] += -arg['r_e2b_I'][:3, :]
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'r_b2g_I' in arg:
             result['r_e2g_I'] += arg['r_b2g_I']
-            result['r_e2b_I'][:3,:] += -arg['r_b2g_I']
+            result['r_e2b_I'][:3, :] += -arg['r_b2g_I']
 
 
 class Comm_VectorSpherical(Component):
+    '''Convert satellite-ground vector into Az-El.'''
 
     def __init__(self, n):
         super(Comm_VectorSpherical, self).__init__()
         self.n = n
 
-        self.add('azimuthGS', Array(np.zeros(n), iotype='out', shape=(n,)))
-        self.add('elevationGS', Array(np.zeros(n), iotype='out', shape=(n,)))
-
+        # Inputs
         self.add('r_b2g_A', Array(np.zeros((3, n)), iotype='in',
                                   shape=(3, self.n)))
 
+        # Outputs
+        self.add('azimuthGS', Array(np.zeros(n), iotype='out', shape=(n,)))
+        self.add('elevationGS', Array(np.zeros(n), iotype='out', shape=(n,)))
+
     def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        
         self.Ja1, self.Ji1, self.Jj1, self.Ja2, self.Ji2, self.Jj2 = \
             computepositionsphericaljacobian(self.n, 3*self.n, self.r_b2g_A)
 
-        self.J1 = scipy.sparse.csc_matrix((self.Ja1, (self.Ji1, self.Jj1)), shape=(self.n,3*self.n))
-        self.J2 = scipy.sparse.csc_matrix((self.Ja2, (self.Ji2, self.Jj2)), shape=(self.n,3*self.n))
+        self.J1 = scipy.sparse.csc_matrix((self.Ja1, (self.Ji1, self.Jj1)),
+                                          shape=(self.n,3 *self.n))
+        self.J2 = scipy.sparse.csc_matrix((self.Ja2, (self.Ji2, self.Jj2)), 
+                                          shape=(self.n, 3*self.n))
         self.J1T = self.J1.transpose()
         self.J2T = self.J2.transpose()
 
     def execute(self):
-        azimuthGS, elevationGS = computepositionspherical(self.n,self.r_b2g_A)
+        """ Calculate output. """
+        
+        azimuthGS, elevationGS = computepositionspherical(self.n, self.r_b2g_A)
         self.azimuthGS = azimuthGS
         self.elevationGS = elevationGS
 
     def apply_deriv(self, arg, result):
+        """ Matrix-vector product with the Jacobian. """
 
         if 'r_b2g_A' in arg:
-            r_b2g_A = arg['r_b2g_A'].reshape((3*self.n),order='F')
+            r_b2g_A = arg['r_b2g_A'].reshape((3*self.n), order='F')
             result['azimuthGS'] += self.J1.dot(r_b2g_A)
             result['elevationGS'] += self.J2.dot(r_b2g_A)
 
     def apply_derivT(self, arg, result):
+        """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'azimuthGS' in arg and 'elevationGS' in arg:
-            azimuthGS = arg['azimuthGS']
-            elevationGS = arg['elevationGS']
-            result['r_b2g_A'] += (self.J1T.dot(azimuthGS) +
-                                  self.J2T.dot(elevationGS)).reshape((3, self.n), order='F')
+            az_GS = arg['azimuthGS']
+            el_GS = arg['elevationGS']
+            result['r_b2g_A'] += (self.J1T.dot(az_GS) +
+                                  self.J2T.dot(el_GS)).reshape((3, self.n), 
+                                                               order='F')

@@ -44,11 +44,11 @@ model.driver.iprint = 2
 
 
 # add parameters to driver
-#for k in xrange(12):
-    #for j in xrange(m):
-    #    param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
-    #                     str(j), ")]"])
-    #    model.driver.add_parameter(param, low=0, high=0.4)
+for k in xrange(12):
+    for j in xrange(m):
+        param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
+                         str(j), ")]"])
+        model.driver.add_parameter(param, low=0, high=0.4)
 for k in xrange(m):
     param = ''.join(["cadre.CP_gamma[",str(k),"]"])
     model.driver.add_parameter(param, low=0, high=np.pi/2.)
@@ -66,7 +66,7 @@ model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
 model.driver.add_parameter(antangles, low=0, high=np.pi)
 
 #add objective
-obj = "cadre.Data_Final"
+obj = "cadre.Data[0, -1]"
 model.driver.add_objective(obj)
 
 model.run()
