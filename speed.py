@@ -86,14 +86,20 @@ cadre = set_as_top(Assembly())
 #outputs = ['comp.r_e2g_I']
 #state0 = []
 
-cadre.add('comp', Comm_VectorBody(NTIME))
-shape = cadre.comp.r_b2g_I.shape
-cadre.comp.r_b2g_I = np.ones(shape)
-shape = cadre.comp.O_BI.shape
-cadre.comp.O_BI = np.ones(shape)
-inputs = ['r_b2g_I', 'O_BI']
-outputs = ['r_b2g_B']
-state0 = []
+#cadre.add('comp', Comm_VectorBody(NTIME))
+#shape = cadre.comp.r_b2g_I.shape
+#cadre.comp.r_b2g_I = np.ones(shape)
+#shape = cadre.comp.O_BI.shape
+#cadre.comp.O_BI = np.ones(shape)
+#inputs = ['r_b2g_I', 'O_BI']
+#outputs = ['r_b2g_B']
+#state0 = []
+
+cadre.add('comp', Comm_VectorSpherical(NTIME))
+shape = cadre.comp.r_b2g_A.shape
+cadre.comp.r_b2g_A = np.ones(shape)
+inputs = ['comp.r_b2g_A']
+outputs = ['azimuthGS', 'elevationGS']
 
 # --------------------------------------------------
 
@@ -103,8 +109,8 @@ from time import time
 tzero = time()
 cadre.comp.execute()
 for i in range(25):
-    #cadre.comp.execute()
-    cadre.comp.linearize()
+    cadre.comp.execute()
+    #cadre.comp.linearize()
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, mode='adjoint')
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, fd=True)

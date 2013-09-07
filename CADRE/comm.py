@@ -128,7 +128,7 @@ class Comm_AntRotationMtx(Component):
         dA_dq[3, :, 0] = (0, 0, 0)
 
         dA_dq[0, :, 1] = (0, 0, 0)
-        dA_dq[1, :, 1] = (0, 0,-1)
+        dA_dq[1, :, 1] = (0, 0, -1)
         dA_dq[2, :, 1] = (0, 1, 0)
         dA_dq[3, :, 1] = (1, 0, 0)
 
@@ -137,7 +137,7 @@ class Comm_AntRotationMtx(Component):
         dA_dq[2, :, 2] = (-1, 0, 0)
         dA_dq[3, :, 2] = (0, 1, 0)
 
-        dA_dq[0, :, 3] = (0,-1, 0)
+        dA_dq[0, :, 3] = (0, -1, 0)
         dA_dq[1, :, 3] = (1, 0, 0)
         dA_dq[2, :, 3] = (0, 0, 0)
         dA_dq[3, :, 3] = (0, 0, 1)
@@ -150,10 +150,10 @@ class Comm_AntRotationMtx(Component):
 
         dB_dq[0, :, 1] = (0, 0, 0)
         dB_dq[1, :, 1] = (0, 0, 1)
-        dB_dq[2, :, 1] = (0,-1, 0)
+        dB_dq[2, :, 1] = (0, -1, 0)
         dB_dq[3, :, 1] = (1, 0, 0)
 
-        dB_dq[0, :, 2] = (0, 0,-1)
+        dB_dq[0, :, 2] = (0, 0, -1)
         dB_dq[1, :, 2] = (0, 0, 0)
         dB_dq[2, :, 2] = (1, 0, 0)
         dB_dq[3, :, 2] = (0, 1, 0)
@@ -175,8 +175,8 @@ class Comm_AntRotationMtx(Component):
             B[3, :] = ( self.q_A[1, i],  self.q_A[2, i],  self.q_A[3, i])
 
             for k in range(0, 4):
-                self.J[i,:,:,k] = np.dot(dA_dq[:, : ,k].T, B) + \
-                                  np.dot(A.T, dB_dq[:, :, k])
+                self.J[i, :, :, k] = np.dot(dA_dq[:, :, k].T, B) + \
+                                     np.dot(A.T, dB_dq[:, :, k])
 
     def execute(self):
         """ Calculate output. """
@@ -332,9 +332,9 @@ class Comm_Distance(Component):
         for i in range(0, self.n):
             norm = np.dot(self.r_b2g_A[:, i], self.r_b2g_A[:, i])**0.5
             if norm > 1e-10:
-                self.J[i,:] = self.r_b2g_A[:, i] / norm
+                self.J[i, :] = self.r_b2g_A[:, i] / norm
             else:
-                self.J[i,:] = 0.
+                self.J[i, :] = 0.
 
 
     def execute(self):
@@ -355,7 +355,7 @@ class Comm_Distance(Component):
 
         if 'GSdist' in arg and 'r_b2g_A' in result:
             for k in xrange(3):
-                result['r_b2g_A'][k,:] += self.J[:,k] * arg['GSdist']
+                result['r_b2g_A'][k, :] += self.J[:, k] * arg['GSdist']
 
 
 class Comm_EarthsSpin(Component):
@@ -441,7 +441,7 @@ class Comm_EarthsSpinMtx(Component):
         dA_dq[3, :, 0] = (0, 0, 0)
 
         dA_dq[0, :, 1] = (0, 0, 0)
-        dA_dq[1, :, 1] = (0, 0,-1)
+        dA_dq[1, :, 1] = (0, 0, -1)
         dA_dq[2, :, 1] = (0, 1, 0)
         dA_dq[3, :, 1] = (1, 0, 0)
 
@@ -450,7 +450,7 @@ class Comm_EarthsSpinMtx(Component):
         dA_dq[2, :, 2] = (-1, 0, 0)
         dA_dq[3, :, 2] = (0, 1, 0)
 
-        dA_dq[0, :, 3] = (0,-1, 0)
+        dA_dq[0, :, 3] = (0, -1, 0)
         dA_dq[1, :, 3] = (1, 0, 0)
         dA_dq[2, :, 3] = (0, 0, 0)
         dA_dq[3, :, 3] = (0, 0, 1)
@@ -463,10 +463,10 @@ class Comm_EarthsSpinMtx(Component):
 
         dB_dq[0, :, 1] = (0, 0, 0)
         dB_dq[1, :, 1] = (0, 0, 1)
-        dB_dq[2, :, 1] = (0,-1, 0)
+        dB_dq[2, :, 1] = (0, -1, 0)
         dB_dq[3, :, 1] = (1, 0, 0)
 
-        dB_dq[0, :, 2] = (0, 0,-1)
+        dB_dq[0, :, 2] = (0, 0, -1)
         dB_dq[1, :, 2] = (0, 0, 0)
         dB_dq[2, :, 2] = (1, 0, 0)
         dB_dq[3, :, 2] = (0, 1, 0)
@@ -497,7 +497,7 @@ class Comm_EarthsSpinMtx(Component):
         A = np.zeros((4, 3))
         B = np.zeros((4, 3))
 
-        for i in range(0,self.n):
+        for i in range(0, self.n):
             A[0, :] = ( self.q_E[0, i], -self.q_E[3, i],  self.q_E[2, i])
             A[1, :] = ( self.q_E[3, i],  self.q_E[0, i], -self.q_E[1, i])
             A[2, :] = (-self.q_E[2, i],  self.q_E[1, i],  self.q_E[0, i])
@@ -561,8 +561,8 @@ class Comm_GainPattern(Component):
     def linearize(self):
         """ Calculate and save derivatives. (i.e., Jacobian) """
 
-        self.dg_daz = self.MBI.evaluate(self.x, 1)[:,0]
-        self.dg_del = self.MBI.evaluate(self.x, 2)[:,0]
+        self.dg_daz = self.MBI.evaluate(self.x, 1)[:, 0]
+        self.dg_del = self.MBI.evaluate(self.x, 2)[:, 0]
 
     def execute(self):
         """ Calculate output. """
@@ -642,9 +642,9 @@ class Comm_GSposEarth(Component):
         cos_lat = np.cos(self.d2r*self.lat)
         r_GS = (self.Re + self.alt)
 
-        self.r_e2g_E[0,:] = r_GS * cos_lat * np.cos(self.d2r*self.lon)
-        self.r_e2g_E[1,:] = r_GS * cos_lat * np.sin(self.d2r*self.lon)
-        self.r_e2g_E[2,:] = r_GS * np.sin(self.d2r*self.lat)
+        self.r_e2g_E[0, :] = r_GS * cos_lat * np.cos(self.d2r*self.lon)
+        self.r_e2g_E[1, :] = r_GS * cos_lat * np.sin(self.d2r*self.lon)
+        self.r_e2g_E[2, :] = r_GS * np.sin(self.d2r*self.lat)
 
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
@@ -696,14 +696,14 @@ class Comm_GSposECI(Component):
         for k in range(0, 3):
             for v in range(0, 3):
                 self.J1[:, k, k, v] = self.r_e2g_E[v, :]
-                    
+
         self.J2 = np.transpose(self.O_IE, (2, 0, 1))
 
     def execute(self):
         """ Calculate output. """
-         
+
         for i in range(0, self.n):
-            self.r_e2g_I[:, i] = np.dot(self.O_IE[:, :, i], 
+            self.r_e2g_I[:, i] = np.dot(self.O_IE[:, :, i],
                                         self.r_e2g_E[:, i])
 
     def apply_deriv(self, arg, result):
@@ -715,7 +715,7 @@ class Comm_GSposECI(Component):
                     for v in xrange(3):
                         result['r_e2g_I'][k, :] += self.J1[:, k, u, v] * \
                                                    arg['O_IE'][u, v, :]
-                        
+
                     result['r_e2g_I'][k, :] += self.J2[:, k, u] * \
                                                arg['r_e2g_E'][u, :]
 
@@ -761,9 +761,9 @@ class Comm_LOS(Component):
 
         Rb = 10.0
         for i in range(0, self.n):
-            
+
             proj = np.dot(self.r_b2g_I[:, i], self.r_e2g_I[:, i]) / self.Re
-            
+
             if proj > 0:
                 self.dLOS_drb[i, :] = 0.
                 self.dLOS_dre[i, :] = 0.
@@ -776,17 +776,17 @@ class Comm_LOS(Component):
                 dLOS_dx = 6*x - 6*x**2
                 dproj_drb = self.r_e2g_I[:, i]
                 dproj_dre = self.r_b2g_I[:, i]
-                
+
                 self.dLOS_drb[i, :] = dLOS_dx * dx_dproj * dproj_drb
                 self.dLOS_dre[i, :] = dLOS_dx * dx_dproj * dproj_dre
 
     def execute(self):
         """ Calculate output. """
-        
+
         Rb = 100.0
         for i in range(0, self.n):
             proj = np.dot(self.r_b2g_I[:, i], self.r_e2g_I[:, i]) / self.Re
-            
+
             if proj > 0:
                 self.CommLOS[i] = 0.
             elif proj < -Rb:
@@ -824,18 +824,18 @@ class Comm_VectorAnt(Component):
                                shape=(3, 3, n)))
 
         # Outputs
-        self.add('r_b2g_A', Array(np.zeros((3, n)), iotype='out', 
+        self.add('r_b2g_A', Array(np.zeros((3, n)), iotype='out',
                                   shape=(3, n)))
 
     def linearize(self):
         """ Calculate and save derivatives. (i.e., Jacobian) """
-        
-        self.J1, self.J2 = computepositionrotdjacobian(self.n, self.r_b2g_B, 
+
+        self.J1, self.J2 = computepositionrotdjacobian(self.n, self.r_b2g_B,
                                                        self.O_AB)
 
     def execute(self):
         """ Calculate output. """
-        
+
         self.r_b2g_A = computepositionrotd(self.n, self.r_b2g_B, self.O_AB)
 
     def apply_deriv(self, arg, result):
@@ -873,13 +873,13 @@ class Comm_VectorBody(Component):
         self.n = n
 
         # Inputs
-        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='in', 
+        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='in',
                                   shape=(3, n)))
         self.add('O_BI', Array(np.zeros((3, 3, n)), iotype='in',
                                shape=(3, 3, n)))
 
         # Outputs
-        self.add('r_b2g_B', Array(np.zeros((3, n)), iotype='out', 
+        self.add('r_b2g_B', Array(np.zeros((3, n)), iotype='out',
                                   shape=(3, n)))
 
     def linearize(self):
@@ -890,12 +890,12 @@ class Comm_VectorBody(Component):
         for k in range(0, 3):
             for v in range(0, 3):
                 self.J1[:, k, k, v] = self.r_b2g_I[v, :]
-                    
-        self.J2 = np.transpose(self.O_BI, (2, 0, 1))                    
+
+        self.J2 = np.transpose(self.O_BI, (2, 0, 1))
 
     def execute(self):
         """ Calculate output. """
-        
+
         for i in range(0, self.n):
             self.r_b2g_B[:, i] = np.dot(self.O_BI[:, :, i], self.r_b2g_I[:, i])
 
@@ -914,7 +914,7 @@ class Comm_VectorBody(Component):
 
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
-        
+
         if 'r_b2g_B' in arg:
             for k in range(3):
                 for u in range(3):
@@ -938,7 +938,7 @@ class Comm_VectorECI(Component):
         self.add('r_e2b_I', Array(np.zeros((6, n)), iotype='in', shape=(6, n)))
 
         # Outputs
-        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='out', 
+        self.add('r_b2g_I', Array(np.zeros((3, n)), iotype='out',
                                   shape=(3, n)))
 
     def linearize(self):
@@ -948,7 +948,7 @@ class Comm_VectorECI(Component):
 
     def execute(self):
         """ Calculate output. """
-        
+
         self.r_b2g_I = self.r_e2g_I - self.r_e2b_I[:3, :]
 
     def apply_deriv(self, arg, result):
@@ -983,20 +983,20 @@ class Comm_VectorSpherical(Component):
 
     def linearize(self):
         """ Calculate and save derivatives. (i.e., Jacobian) """
-        
+
         self.Ja1, self.Ji1, self.Jj1, self.Ja2, self.Ji2, self.Jj2 = \
             computepositionsphericaljacobian(self.n, 3*self.n, self.r_b2g_A)
 
         self.J1 = scipy.sparse.csc_matrix((self.Ja1, (self.Ji1, self.Jj1)),
                                           shape=(self.n,3 *self.n))
-        self.J2 = scipy.sparse.csc_matrix((self.Ja2, (self.Ji2, self.Jj2)), 
+        self.J2 = scipy.sparse.csc_matrix((self.Ja2, (self.Ji2, self.Jj2)),
                                           shape=(self.n, 3*self.n))
         self.J1T = self.J1.transpose()
         self.J2T = self.J2.transpose()
 
     def execute(self):
         """ Calculate output. """
-        
+
         azimuthGS, elevationGS = computepositionspherical(self.n, self.r_b2g_A)
         self.azimuthGS = azimuthGS
         self.elevationGS = elevationGS
@@ -1016,5 +1016,5 @@ class Comm_VectorSpherical(Component):
             az_GS = arg['azimuthGS']
             el_GS = arg['elevationGS']
             result['r_b2g_A'] += (self.J1T.dot(az_GS) +
-                                  self.J2T.dot(el_GS)).reshape((3, self.n), 
+                                  self.J2T.dot(el_GS)).reshape((3, self.n),
                                                                order='F')
