@@ -37,6 +37,11 @@ class BsplineParameters(Component):
         self.add('Isetpt',Array(0.2*np.ones((12,n)), size=(12,n), dtype=float,
                                 iotype='out'))
 
+    def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        # Derivatives are simple
+        return
+
     def execute(self):
         #self.h = (self.t2 - self.t1)/(self.n - 1)
         self.P_comm = self.B.dot(self.CP_P_comm)
