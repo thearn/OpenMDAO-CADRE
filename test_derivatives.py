@@ -87,7 +87,8 @@ class Testcase_CADRE(unittest.TestCase):
         # Analytic forward
         wflow.config_changed()
         Jf = wflow.calc_gradient(inputs=inputs,
-                                 outputs=outputs)
+                                 outputs=outputs,
+                                 mode='forward')
 
         #print Jf
 

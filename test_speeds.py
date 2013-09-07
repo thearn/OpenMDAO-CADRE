@@ -1,11 +1,10 @@
 
 import unittest
+import sys
 from math import log
 import numpy as np
-import pickle
 from time import time
 import random
-import warnings
 
 from openmdao.main.api import Assembly, set_as_top
 from openmdao.util.testutil import assert_rel_error
@@ -29,12 +28,9 @@ from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, \
 from CADRE.thermal_temperature import ThermalTemperature
 
 
-NTIME = 5
-NTIME2 = 5
-NEXEC = 1
-
-# Ignore the numerical warnings from performing the rel error calc.
-warnings.simplefilter("ignore")
+NTIME = 40
+NTIME2 = NTIME/2
+NEXEC = 5
 
 class Testcase_CADRE(unittest.TestCase):
     """ Test run/step/stop aspects of a simple workflow. """
@@ -103,6 +99,7 @@ class Testcase_CADRE(unittest.TestCase):
         exp = log(tt/tt2, 2)
         
         print "Execution:   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
         
         self.model.driver.workflow.config_changed()
@@ -121,6 +118,7 @@ class Testcase_CADRE(unittest.TestCase):
         exp = log(tt/tt2, 2)
         
         print "Linearize:   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
 
         self.model.driver.workflow.config_changed()
@@ -139,6 +137,7 @@ class Testcase_CADRE(unittest.TestCase):
         exp = log(tt/tt2, 2)
         
         print "Apply_J  :   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
         
         
         self.model.driver.workflow.config_changed()
@@ -159,6 +158,7 @@ class Testcase_CADRE(unittest.TestCase):
         exp = log(tt/tt2, 2)
         
         print "Apply_JT :   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
 
     def run_model(self):
@@ -500,21 +500,25 @@ class Testcase_CADRE(unittest.TestCase):
 
         self.setup(compname, inputs, state0)
 
-        shape = self.model.comp.temperature.shape
-        self.model.comp.temperature = np.ones(shape)
-        self.model2.comp.temperature = np.ones(shape)
+        shape1 = self.model.comp.temperature.shape
+        shape2 = self.model2.comp.temperature.shape
+        self.model.comp.temperature = np.ones(shape1)
+        self.model2.comp.temperature = np.ones(shape2)
 
-        shape = self.model.comp.temperature.shape
-        self.model.comp.temperature = np.random.random(shape)*40 + 240
-        self.model2.comp.temperature = np.random.random(shape)*40 + 240
+        shape1 = self.model.comp.temperature.shape
+        shape2 = self.model2.comp.temperature.shape
+        self.model.comp.temperature = np.random.random(shape1)*40 + 240
+        self.model2.comp.temperature = np.random.random(shape2)*40 + 240
 
-        shape = self.model.comp.exposedArea.shape
-        self.model.comp.exposedArea = np.random.random(shape)*1e-4
-        self.model2.comp.exposedArea = np.random.random(shape)*1e-4
+        shape1 = self.model.comp.exposedArea.shape
+        shape2 = self.model2.comp.exposedArea.shape
+        self.model.comp.exposedArea = np.random.random(shape1)*1e-4
+        self.model2.comp.exposedArea = np.random.random(shape2)*1e-4
 
-        shape = self.model.comp.Isetpt.shape
-        self.model.comp.Isetpt = np.random.random(shape)*1e-6
-        self.model2.comp.Isetpt = np.random.random(shape)*1e-6
+        shape1 = self.model.comp.Isetpt.shape
+        shape2 = self.model2.comp.Isetpt.shape
+        self.model.comp.Isetpt = np.random.random(shape1)*1e-6
+        self.model2.comp.Isetpt = np.random.random(shape2)*1e-6
 
         self.run_model()
         self.compare_derivatives(inputs, outputs, rel_error=True)
