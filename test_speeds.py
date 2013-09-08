@@ -28,7 +28,7 @@ from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, \
 from CADRE.thermal_temperature import ThermalTemperature
 
 
-NTIME = 40
+NTIME = 300
 NTIME2 = NTIME/2
 NEXEC = 5
 

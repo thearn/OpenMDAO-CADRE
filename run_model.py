@@ -1,4 +1,5 @@
 
+import sys
 import numpy as np
 
 from openmdao.lib.drivers.api import CONMINdriver
@@ -13,7 +14,7 @@ comm_raw = (10**(comm_rawGdata/10.0)).reshape((361,361), order='F')
 power_raw = np.genfromtxt('CADRE/data/Power/curve.dat')
 
 
-n = 100
+n = 50
 m = 20
 
 # Initialize analysis points
@@ -56,6 +57,22 @@ for k in xrange(m):
     param = ''.join(["cadre.CP_P_comm[",str(k),"]"])
     model.driver.add_parameter(param, low=0.1, high=25.)
 
+# add battery constraints
+constr = ''.join(["cadre.ConCh <= 0"])
+model.driver.add_constraint(constr)
+
+constr = ''.join(["cadre.ConDs <= 0"])
+model.driver.add_constraint(constr)
+
+constr = ''.join(["cadre.ConS0 <= 0"])
+model.driver.add_constraint(constr)
+
+constr = ''.join(["cadre.ConS1 <= 0"])
+model.driver.add_constraint(constr)
+
+#constr = ''.join(["cadre.BatterySOC.SOC[0] = cadre.BatterySOC.SOC[-1]"])
+#model.driver.add_constraint(constr)
+
 param = ''.join(["cadre.iSOC[0]"])
 model.driver.add_parameter(param, low=0.2, high=1.)
 
@@ -64,12 +81,14 @@ finangles = "cadre.finAngle"
 antangles = "cadre.antAngle"
 model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
 model.driver.add_parameter(antangles, low=0, high=np.pi)
+model.driver.conmin_diff = True
 
 #add objective
 obj = "cadre.Data[0, -1]"
 model.driver.add_objective(obj)
 
 model.run()
+
 
 
 #for item in sorted(model.driver.workflow.get_interior_edges()):
