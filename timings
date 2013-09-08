@@ -1,0 +1,333 @@
+
+
+<class 'CADRE.attitude.Attitude_Angular'> n=300, averages=5
+------------------------------
+Execution:    0.00177960395813 (n **  0.61)
+Linearize:    0.0047580242157 (n **  0.70)
+Apply_J  :    18.588387394 (n **  1.49)
+Apply_JT :    2.90155563354 (n **  1.45)
+.
+
+<class 'CADRE.attitude.Attitude_AngularRates'> n=300, averages=5
+------------------------------
+Execution:    0.000750398635864 (n ** -0.04)
+Linearize:    5.72204589844e-07 (n **  0.42)
+Apply_J  :    0.656900787354 (n **  1.14)
+Apply_JT :    0.650751018524 (n **  1.12)
+.
+
+<class 'CADRE.attitude.Attitude_Attitude'> n=300, averages=5
+------------------------------
+Execution:    0.00392017364502 (n **  0.76)
+Linearize:    0.062207365036 (n **  0.99)
+Apply_J  :    5.01499819756 (n **  1.63)
+Apply_JT :    7.43978462219 (n **  1.63)
+.
+
+<class 'CADRE.attitude.Attitude_Roll'> n=300, averages=5
+------------------------------
+Execution:    0.000741004943848 (n **  0.02)
+Linearize:    5.02109527588e-05 (n **  0.60)
+Apply_J  :    0.410619401932 (n **  1.92)
+Apply_JT :    3.47468895912 (n **  2.03)
+.
+
+<class 'CADRE.attitude.Attitude_RotationMtx'> n=300, averages=5
+------------------------------
+Execution:    0.00112519264221 (n **  0.27)
+Linearize:    6.19888305664e-07 (n **  0.00)
+Apply_J  :    16.4629261971 (n **  1.39)
+Apply_JT :    8.14244523048 (n **  1.37)
+.
+
+<class 'CADRE.attitude.Attitude_RotationMtxRates'> n=300, averages=5
+------------------------------
+Execution:    0.000790405273437 (n **  0.00)
+Linearize:    8.10623168945e-07 (n **  0.92)
+Apply_J  :    5.90358419418 (n **  1.47)
+Apply_JT :    5.83739180565 (n **  1.46)
+.
+
+<class 'CADRE.attitude.Attitude_Sideslip'> n=300, averages=5
+------------------------------
+Execution:    0.00103335380554 (n **  0.22)
+Linearize:    6.85691833496e-05 (n **  1.16)
+Apply_J  :    11.5617722034 (n **  1.52)
+Apply_JT :    2.34634737968 (n **  1.41)
+.
+
+<class 'CADRE.attitude.Attitude_Torque'> n=300, averages=5
+------------------------------
+Execution:    0.00297718048096 (n **  0.77)
+Linearize:    0.0199635982513 (n **  1.01)
+Apply_J  :    2.96867241859 (n **  1.72)
+Apply_JT :    1.42727618217 (n **  1.67)
+.
+
+<class 'CADRE.battery.BatteryConstraints'> n=300, averages=5
+------------------------------
+Execution:    0.000883197784424 (n **  0.10)
+Linearize:    0.000110816955566 (n **  0.39)
+Apply_J  :    0.257673215866 (n **  1.11)
+Apply_JT :    0.00274519920349 (n **  0.09)
+.
+
+<class 'CADRE.battery.BatteryPower'> n=300, averages=5
+------------------------------
+Execution:    0.000781583786011 (n **  0.05)
+Linearize:    0.000110006332397 (n **  0.44)
+Apply_J  :    1.43219118118 (n **  1.41)
+Apply_JT :    0.232252407074 (n **  1.30)
+.
+
+<class 'CADRE.battery.BatterySOC'> n=300, averages=5
+------------------------------
+Execution:    0.00607137680054 (n **  0.83)
+Linearize:    0.122112178802 (n **  1.01)
+Apply_J  :    33.4938148022 (n **  2.01)
+Apply_JT :    6.11768298149 (n **  1.95)
+.
+
+<class 'CADRE.comm.Comm_AntRotation'> n=300, averages=5
+------------------------------
+Execution:    0.000723171234131 (n ** -0.00)
+Linearize:    1.65939331055e-05 (n **  0.24)
+Apply_J  :    0.000743007659912 (n **  0.09)
+Apply_JT :    0.717678642273 (n **  1.26)
+.
+
+<class 'CADRE.comm.Comm_AntRotationMtx'> n=300, averages=5
+------------------------------
+Execution:    0.00461258888245 (n **  0.79)
+Linearize:    0.0345503807068 (n **  1.00)
+Apply_J  :    2.67853221893 (n **  1.67)
+Apply_JT :    5.88203339577 (n **  1.67)
+.
+
+<class 'CADRE.comm.Comm_BitRate'> n=300, averages=5
+------------------------------
+Execution:    0.0012375831604 (n **  0.30)
+Linearize:    0.0048779964447 (n **  0.99)
+Apply_J  :    0.835001802444 (n **  1.27)
+Apply_JT :    0.209329795837 (n **  1.22)
+.
+
+<class 'CADRE.comm.Comm_DataDownloaded'> n=300, averages=5
+------------------------------
+Execution:    0.00295381546021 (n **  0.73)
+Linearize:    0.0360879898071 (n **  0.99)
+Apply_J  :    4.72573037148 (n **  1.99)
+Apply_JT :    2.90629920959 (n **  1.93)
+.
+
+<class 'CADRE.comm.Comm_Distance'> n=300, averages=5
+------------------------------
+Execution:    0.000942802429199 (n **  0.18)
+Linearize:    0.00299959182739 (n **  1.00)
+Apply_J  :    0.556641197205 (n **  1.26)
+Apply_JT :    0.179127788544 (n **  1.20)
+.
+
+<class 'CADRE.comm.Comm_EarthsSpin'> n=300, averages=5
+------------------------------
+Execution:    0.0007239818573 (n ** -0.01)
+Linearize:    5.71727752686e-05 (n **  0.63)
+Apply_J  :    0.198027610779 (n **  1.29)
+Apply_JT :    0.591609621048 (n **  1.25)
+.
+
+<class 'CADRE.comm.Comm_EarthsSpinMtx'> n=300, averages=5
+------------------------------
+Execution:    0.00462341308594 (n **  0.79)
+Linearize:    0.0352843761444 (n **  0.99)
+Apply_J  :    2.68442182541 (n **  1.67)
+Apply_JT :    5.88286499977 (n **  1.67)
+.
+
+<class 'CADRE.comm.Comm_GSposECI'> n=300, averages=5
+------------------------------
+Execution:    0.00107316970825 (n **  0.24)
+Linearize:    4.59671020508e-05 (n **  0.62)
+Apply_J  :    8.72985582352 (n **  1.76)
+Apply_JT :    2.08884019852 (n **  1.72)
+.
+
+<class 'CADRE.comm.Comm_GSposEarth'> n=300, averages=5
+------------------------------
+Execution:    0.000737190246582 (n ** -0.02)
+Linearize:    3.2377243042e-05 (n **  0.60)
+Apply_J  :    0.00229020118713 (n **  0.09)
+Apply_JT :    0.579991006851 (n **  1.00)
+.
+
+<class 'CADRE.comm.Comm_GainPattern'> n=300, averages=5
+------------------------------
+Execution:    0.00146622657776 (n **  0.40)
+Linearize:    0.0037456035614 (n **  0.97)
+Apply_J  :    0.333253383636 (n **  1.23)
+Apply_JT :    0.158714008331 (n **  1.14)
+.
+
+<class 'CADRE.comm.Comm_LOS'> n=300, averages=5
+------------------------------
+Execution:    0.00103702545166 (n **  0.23)
+Linearize:    0.00226559638977 (n **  0.98)
+Apply_J  :    1.05705356598 (n **  1.42)
+Apply_JT :    0.180814409256 (n **  1.40)
+.
+
+<class 'CADRE.comm.Comm_VectorAnt'> n=300, averages=5
+------------------------------
+Execution:    0.00103158950806 (n **  0.22)
+Linearize:    4.94003295898e-05 (n **  0.72)
+Apply_J  :    6.42839679718 (n **  1.32)
+Apply_JT :    1.5215487957 (n **  1.28)
+.
+
+<class 'CADRE.comm.Comm_VectorBody'> n=300, averages=5
+------------------------------
+Execution:    0.0010320186615 (n **  0.22)
+Linearize:    4.60147857666e-05 (n **  0.39)
+Apply_J  :    6.44567680359 (n **  1.32)
+Apply_JT :    1.51065883636 (n **  1.26)
+.
+
+<class 'CADRE.comm.Comm_VectorECI'> n=300, averages=5
+------------------------------
+Execution:    0.000741195678711 (n ** -0.05)
+Linearize:    7.62939453125e-07 (n **  0.83)
+Apply_J  :    2.48083581924 (n **  1.54)
+Apply_JT :    0.628449821472 (n **  1.34)
+.
+
+<class 'CADRE.comm.Comm_VectorSpherical'> n=300, averages=5
+------------------------------
+Execution:    0.00119123458862 (n **  0.29)
+Linearize:    0.0202693939209 (n **  0.97)
+Apply_J  :    0.819964408875 (n **  1.20)
+Apply_JT :    0.544911384583 (n **  1.17)
+..
+
+<class 'CADRE.orbit.Orbit_Initial'> n=300, averages=5
+------------------------------
+Execution:    0.000869178771973 (n ** -0.03)
+Linearize:    0.00223379135132 (n **  0.01)
+Apply_J  :    0.00609121322632 (n **  0.01)
+Apply_JT :    0.00681962966919 (n ** -0.02)
+.
+
+<class 'CADRE.power.Power_CellVoltage'> n=300, averages=5
+------------------------------
+Execution:    0.0945599555969 (n **  1.03)
+Linearize:    1.41399641037 (n **  1.01)
+Apply_J  :    298.406717825 (n **  1.91)
+Apply_JT :    33.6188774109 (n **  1.60)
+.
+
+<class 'CADRE.power.Power_SolarPower'> n=300, averages=5
+------------------------------
+Execution:    0.00078296661377 (n **  0.04)
+Linearize:    6.19888305664e-07 (n **  0.12)
+Apply_J  :    12.6704795837 (n **  1.51)
+Apply_JT :    0.479774427414 (n **  1.42)
+.
+
+<class 'CADRE.power.Power_Total'> n=300, averages=5
+------------------------------
+Execution:    0.000750398635864 (n ** -0.00)
+Linearize:    5.72204589844e-07 (n ** -0.12)
+Apply_J  :    1.13337140083 (n **  1.33)
+Apply_JT :    0.236883974075 (n **  1.31)
+.
+
+<class 'CADRE.reactionwheel.ReactionWheel_Dynamics'> n=300, averages=5
+------------------------------
+Execution:    0.0122816085815 (n **  0.92)
+Linearize:    0.118554162979 (n **  1.10)
+Apply_J  :    67.6995222092 (n **  2.04)
+Apply_JT :    19.7303587914 (n **  1.98)
+.
+
+<class 'CADRE.reactionwheel.ReactionWheel_Motor'> n=300, averages=5
+------------------------------
+Execution:    0.00277919769287 (n **  0.64)
+Linearize:    0.0345997810364 (n **  1.00)
+Apply_J  :    4.26444001198 (n **  1.29)
+Apply_JT :    1.3996006012 (n **  1.25)
+.
+
+<class 'CADRE.reactionwheel.ReactionWheel_Power'> n=300, averages=5
+------------------------------
+Execution:    0.00181698799133 (n **  0.50)
+Linearize:    0.00556397438049 (n **  0.99)
+Apply_J  :    1.72109036446 (n **  1.37)
+Apply_JT :    0.798184013367 (n **  1.31)
+.
+
+<class 'CADRE.reactionwheel.ReactionWheel_Torque'> n=300, averages=5
+------------------------------
+Execution:    0.000703239440918 (n ** -0.10)
+Linearize:    8.10623168945e-07 (n **  0.50)
+Apply_J  :    0.625826978683 (n **  1.39)
+Apply_JT :    0.610092830658 (n **  1.30)
+.
+
+<class 'CADRE.solar.Solar_ExposedArea'> n=300, averages=5
+------------------------------
+Execution:    0.00242142677307 (n **  0.59)
+Linearize:    0.0202018260956 (n **  1.01)
+Apply_J  :    5.41512479782 (n **  1.94)
+Apply_JT :    221.130657625 (n **  1.90)
+.
+
+<class 'CADRE.sun.Sun_LOS'> n=300, averages=5
+------------------------------
+Execution:    0.00229439735413 (n **  0.60)
+Linearize:    0.0238471984863 (n **  0.97)
+Apply_J  :    3.39558420181 (n **  2.05)
+Apply_JT :    0.413011598587 (n **  1.99)
+.
+
+<class 'CADRE.sun.Sun_PositionBody'> n=300, averages=5
+------------------------------
+Execution:    0.00110683441162 (n **  0.24)
+Linearize:    6.80446624756e-05 (n **  1.18)
+Apply_J  :    8.80634498596 (n **  1.75)
+Apply_JT :    2.1197953701 (n **  1.74)
+.
+
+<class 'CADRE.sun.Sun_PositionECI'> n=300, averages=5
+------------------------------
+Execution:    0.00230598449707 (n **  0.62)
+Linearize:    0.0155283927917 (n **  0.97)
+Apply_J  :    0.14031419754 (n **  1.14)
+Apply_JT :    0.942462587357 (n **  1.24)
+.
+
+<class 'CADRE.sun.Sun_PositionSpherical'> n=300, averages=5
+------------------------------
+Execution:    0.0012197971344 (n **  0.30)
+Linearize:    0.0204324245453 (n **  0.96)
+Apply_J  :    0.836444759369 (n **  1.17)
+Apply_JT :    0.575063610077 (n **  1.15)
+.
+
+<class 'CADRE.thermal_temperature.ThermalTemperature'> n=300, averages=5
+------------------------------
+Execution:    0.0775496006012 (n **  0.92)
+Linearize:    0.860234022141 (n **  0.98)
+Apply_J  :    2202.049617 (n **  2.07)
+Apply_JT :    71.6183640003 (n **  1.95)
+.
+
+<class 'CADRE.parameters.BsplineParameters'> n=300, averages=5
+------------------------------
+Execution:    0.00120000839233 (n **  0.24)
+Linearize:    8.10623168945e-07 (n **  0.92)
+Apply_J  :    0.243042612076 (n **  0.54)
+Apply_JT :    13.6238536358 (n **  1.45)
+.
+----------------------------------------------------------------------
+Ran 42 tests in 19900.033s
+
+OK
