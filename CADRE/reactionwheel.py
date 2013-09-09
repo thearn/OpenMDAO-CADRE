@@ -144,6 +144,11 @@ class ReactionWheel_Torque(Component):
 
         self.add('T_RW', Array(np.zeros((3,n)), size=(3,n), dtype=np.float, iotype='out'))
 
+    def linearize(self):
+        """ Calculate and save derivatives. (i.e., Jacobian) """
+        # Derivatives are simple
+        return
+
     def execute(self):
         self.T_RW[:] = self.T_tot[:]
 

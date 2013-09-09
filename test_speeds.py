@@ -1,9 +1,10 @@
 
 import unittest
+import sys
+from math import log
 import numpy as np
-import pickle
+from time import time
 import random
-import warnings
 
 from openmdao.main.api import Assembly, set_as_top
 from openmdao.util.testutil import assert_rel_error
@@ -27,10 +28,9 @@ from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, \
 from CADRE.thermal_temperature import ThermalTemperature
 
 
-NTIME = 5
-
-# Ignore the numerical warnings from performing the rel error calc.
-warnings.simplefilter("ignore")
+NTIME = 300
+NTIME2 = NTIME/2
+NEXEC = 5
 
 class Testcase_CADRE(unittest.TestCase):
     """ Test run/step/stop aspects of a simple workflow. """
@@ -38,10 +38,12 @@ class Testcase_CADRE(unittest.TestCase):
     def setUp(self):
         """ Called before each test. """
         self.model = set_as_top(Assembly())
+        self.model2 = Assembly()
 
     def tearDown(self):
         """ Called after each test. """
         self.model = None
+        self.model2 = None
 
     def setup(self, compname, inputs, state0):
 
@@ -51,68 +53,116 @@ class Testcase_CADRE(unittest.TestCase):
             # At least one comp has no args.
             self.model.add('comp', eval('%s()' % compname))
 
+        try:
+            self.model2.add('comp', eval('%s(NTIME2)' % compname))
+        except TypeError:
+            # At least one comp has no args.
+            self.model2.add('comp', eval('%s()' % compname))
+            
         self.model.driver.workflow.add('comp')
-
-        #data = pickle.load(open("data1346.pkl", 'rb'))
+        self.model2.driver.workflow.add('comp')
 
         for item in inputs+state0:
             val = self.model.comp.get(item)
-            #key = "%d:%s" % (NTIME, item)
+            val2 = self.model2.comp.get(item)
             if hasattr(val, 'shape'):
                 shape1 = val.shape
-                #self.model.comp.set(item, data[key])
                 self.model.comp.set(item, np.random.random(shape1))
+                shape2 = val2.shape
+                self.model2.comp.set(item, np.random.random(shape2))
             else:
-                #self.model.comp.set(item, data[key][0])
                 self.model.comp.set(item, random.random())
-
-    def run_model(self):
-
-        self.model.comp.h = 0.01
-        self.model.run()
-
+                self.model2.comp.set(item, random.random())
+        
     def compare_derivatives(self, var_in, var_out, rel_error=False):
 
-        wflow = self.model.driver.workflow
         inputs = ['comp.%s' % v for v in var_in]
         outputs = ['comp.%s' % v for v in var_out]
+        self.model.comp.h = 0.01
+        self.model2.comp.h = 0.01
+        
+        print '\n'        
+        print type(self.model.comp), "n=%d, averages=%d" % (NTIME, NEXEC)
+        print 30*'-'
+        
+        tzero = time()
+        for i in range(NEXEC):
+            self.model.run()   
+            
+        tt = (time()-tzero)/float(NEXEC)
+        
+        tzero = time()
+        for i in range(NEXEC):
+            self.model2.run()   
+            
+        tt2 = (time()-tzero)/float(NEXEC)
+        exp = log(tt/tt2, 2)
+        
+        print "Execution:   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
-        # Numeric
-        wflow.config_changed()
-        Jn = wflow.calc_gradient(inputs=inputs,
-                                 outputs=outputs,
-                                 fd=True)
-        #print Jn
+        
+        self.model.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model.comp.linearize()   
+            
+        tt = (time()-tzero)/float(NEXEC)
+        
+        self.model2.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model2.comp.linearize()   
+            
+        tt2 = (time()-tzero)/float(NEXEC)
+        exp = log(tt/tt2, 2)
+        
+        print "Linearize:   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
-        # Analytic forward
-        wflow.config_changed()
-        Jf = wflow.calc_gradient(inputs=inputs,
-                                 outputs=outputs,
-                                 mode='forward')
 
-        #print Jf
+        self.model.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)   
+            
+        tt = (time()-tzero)/float(NEXEC)
+    
+        self.model2.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model2.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)     
+            
+        tt2 = (time()-tzero)/float(NEXEC)
+        exp = log(tt/tt2, 2)
+        
+        print "Apply_J  :   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
+        
+        
+        self.model.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs,
+                                                     mode='adjoint')   
+            
+        tt = (time()-tzero)/float(NEXEC)
+        
+        self.model2.driver.workflow.config_changed()
+        tzero = time()
+        for i in range(NEXEC):
+            self.model2.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs,
+                                                     mode='adjoint')      
+            
+        tt2 = (time()-tzero)/float(NEXEC)
+        exp = log(tt/tt2, 2)
+        
+        print "Apply_JT :   ", tt, "(n ** %5.2f)" % exp
+        sys.stdout.flush()
 
-        if rel_error:
-            diff = np.nan_to_num(abs(Jf - Jn)/Jn)
-        else:
-            diff = abs(Jf - Jn)
 
-        assert_rel_error(self, diff.max(), 0.0, 1e-3)
-
-        # Analytic adjoint
-        wflow.config_changed()
-        Ja = wflow.calc_gradient(inputs=inputs,
-                                 outputs=outputs,
-                                 mode='adjoint')
-
-        #print Ja
-
-        if rel_error:
-            diff = np.nan_to_num(abs(Ja - Jn)/Jn)
-        else:
-            diff = abs(Ja - Jn)
-
-        assert_rel_error(self, diff.max(), 0.0, 1e-3)
+    def run_model(self):
+        pass
 
     def test_Comm_DataDownloaded(self):
 
@@ -450,17 +500,25 @@ class Testcase_CADRE(unittest.TestCase):
 
         self.setup(compname, inputs, state0)
 
-        shape = self.model.comp.temperature.shape
-        self.model.comp.temperature = np.ones(shape)
+        shape1 = self.model.comp.temperature.shape
+        shape2 = self.model2.comp.temperature.shape
+        self.model.comp.temperature = np.ones(shape1)
+        self.model2.comp.temperature = np.ones(shape2)
 
-        shape = self.model.comp.temperature.shape
-        self.model.comp.temperature = np.random.random(shape)*40 + 240
+        shape1 = self.model.comp.temperature.shape
+        shape2 = self.model2.comp.temperature.shape
+        self.model.comp.temperature = np.random.random(shape1)*40 + 240
+        self.model2.comp.temperature = np.random.random(shape2)*40 + 240
 
-        shape = self.model.comp.exposedArea.shape
-        self.model.comp.exposedArea = np.random.random(shape)*1e-4
+        shape1 = self.model.comp.exposedArea.shape
+        shape2 = self.model2.comp.exposedArea.shape
+        self.model.comp.exposedArea = np.random.random(shape1)*1e-4
+        self.model2.comp.exposedArea = np.random.random(shape2)*1e-4
 
-        shape = self.model.comp.Isetpt.shape
-        self.model.comp.Isetpt = np.random.random(shape)*1e-2
+        shape1 = self.model.comp.Isetpt.shape
+        shape2 = self.model2.comp.Isetpt.shape
+        self.model.comp.Isetpt = np.random.random(shape1)*1e-6
+        self.model2.comp.Isetpt = np.random.random(shape2)*1e-6
 
         self.run_model()
         self.compare_derivatives(inputs, outputs, rel_error=True)
@@ -608,11 +666,16 @@ class Testcase_CADRE(unittest.TestCase):
 
         self.model.add('comp', BsplineParameters(NTIME, 5))
         self.model.driver.workflow.add('comp')
+        self.model2.add('comp', BsplineParameters(NTIME2, 5))
+        self.model2.driver.workflow.add('comp')
 
         for item in inputs:
             val = self.model.comp.get(item)
             shape1 = val.shape
             self.model.comp.set(item, np.random.random(shape1))
+            val2 = self.model2.comp.get(item)
+            shape1 = val2.shape
+            self.model2.comp.set(item, np.random.random(shape1))
                 
         self.run_model()
         self.compare_derivatives(inputs, outputs)

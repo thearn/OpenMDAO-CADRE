@@ -21,27 +21,30 @@ def computepositionrotd(n, vects, mat):
     return result
 
 def computepositionrotdjacobian(n, v1, O_21):
-    J1, J2 = np.zeros((n, 3, 3, 3)), np.zeros((n, 3, 3))
-    eye = np.eye(3)
-    for i in xrange(n):
-        for k in xrange(3):
-            for u in xrange(3):
-                for v in xrange(3):
-                    J1[i,k,u,v] = eye[k,u]*v1[v,i]
-                J2[i,k,u] = O_21[k,u,i]
+                
+    J1 = np.zeros((n, 3, 3, 3))
+
+    for k in range(0, 3):
+        for v in range(0, 3):
+            J1[:, k, k, v] = v1[v, :]
+                
+    J2 = np.transpose(O_21, (2, 0, 1))                   
+    
     return J1, J2
 
 def computepositionspherical(n, v):
     azimuth, elevation = np.empty(n), np.empty(n)
+    
+    r = np.sqrt(np.sum(v*v, 0))
     for i in xrange(n):
-        x = v[0,i]
-        y = v[1,i]
-        z = v[2,i]
-        r = np.sqrt(x**2+y**2+z**2)
-        if r  < 1e-15:
-            r = 1e-5
+        x = v[0, i]
+        y = v[1, i]
+        z = v[2, i]
+        if r[i]  < 1e-15:
+            r[i] = 1e-5
         azimuth[i] = arctan(x, y)
-        elevation[i] = np.arccos(z/r)
+        
+    elevation = np.arccos(v[2, :]/r)
     return azimuth, elevation
 
 def arctan(x, y):

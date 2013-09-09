@@ -1,11 +1,12 @@
 ''' Solar discipline for CADRE '''
 
+import numpy as np
+
 from openmdao.main.api import Component
 from openmdao.lib.datatypes.api import Float, Array
+
 from CADRE.kinematics import fixangles
 from MBI import MBI
-
-import numpy as np
 
 # Allow non-standard variable names for scientific calc
 # pylint: disable-msg=C0103
