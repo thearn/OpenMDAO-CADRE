@@ -45,11 +45,11 @@ class CADRE(Assembly):
         self.t = np.array(range(0, n))*h
 
         # Design parameters
-        self.add('CP_Isetpt', Array(np.zeros((12, self.m)), size=(12, self.m), dtype=float,
+        self.add('CP_Isetpt', Array(0.2*np.ones((12, self.m)), size=(12, self.m), dtype=float,
                                     iotype='in'))
-        self.add('CP_gamma', Array(np.zeros((self.m,)), size=(self.m,), dtype=float,
+        self.add('CP_gamma', Array(np.ones((self.m,)), size=(self.m,), dtype=float,
                                    iotype='in'))
-        self.add('CP_P_comm', Array(np.zeros((self.m,)), size=(self.m,), dtype=float,
+        self.add('CP_P_comm', Array(np.ones((self.m,)), size=(self.m,), dtype=float,
                                     iotype='in'))
         self.add('iSOC',
             Array([1.0], shape=(1, ), dtype=np.float,
@@ -112,6 +112,7 @@ class CADRE(Assembly):
 
         self.add("BatterySOC", BatterySOC(n))
         self.driver.workflow.add("BatterySOC")
+        self.create_passthrough("BatterySOC.SOC")
 
         # Comm components
         self.add("Comm_AntRotation", Comm_AntRotation(n))
