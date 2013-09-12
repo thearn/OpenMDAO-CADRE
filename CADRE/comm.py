@@ -664,9 +664,12 @@ class Comm_GSposEarth(Component):
 
         if 'r_e2g_E' in arg:
             for k in xrange(3):
-                result['lon'] += self.dr_dlon[k] * np.sum(arg['r_e2g_E'][k, :])
-                result['lat'] += self.dr_dlat[k] * np.sum(arg['r_e2g_E'][k, :])
-                result['alt'] += self.dr_dalt[k] * np.sum(arg['r_e2g_E'][k, :])
+                if 'lon' in result:
+                    result['lon'] += self.dr_dlon[k] * np.sum(arg['r_e2g_E'][k, :])
+                if 'lat' in result:
+                    result['lat'] += self.dr_dlat[k] * np.sum(arg['r_e2g_E'][k, :])
+                if 'alt' in result:
+                    result['alt'] += self.dr_dalt[k] * np.sum(arg['r_e2g_E'][k, :])
 
 
 class Comm_GSposECI(Component):

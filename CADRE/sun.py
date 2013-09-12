@@ -254,8 +254,10 @@ class Sun_PositionECI( Component ):
 
         if 'r_e2s_I' in arg:
             r_e2s_I = arg['r_e2s_I'][:].reshape((3*self.n),order='F')
-            result['LD'] += sum(self.JT.dot(r_e2s_I))
-            result['t'][:] += self.JT.dot(r_e2s_I)/3600.0/24.0
+            if 'LD' in result:
+                result['LD'] += sum(self.JT.dot(r_e2s_I))
+            if 't' in result:
+                result['t'][:] += self.JT.dot(r_e2s_I)/3600.0/24.0
 
 
 class Sun_PositionSpherical(Component):

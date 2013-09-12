@@ -81,7 +81,7 @@ finangles = "cadre.finAngle"
 antangles = "cadre.antAngle"
 model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
 model.driver.add_parameter(antangles, low=0, high=np.pi)
-model.driver.conmin_diff = True
+model.driver.conmin_diff = False
 
 #add objective
 obj = "cadre.Data[0, -1]"

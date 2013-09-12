@@ -2,7 +2,7 @@ from openmdao.main.api import Assembly
 from openmdao.main.datatypes.api import Float, Array, Int
 import numpy as np
 from CADRE_assembly import CADRE
-#from pyopt_driver import pyopt_driver
+from pyopt_driver import pyopt_driver
 from openmdao.lib.drivers.api import CONMINdriver
 
 class CADRE_Optimization(Assembly):
@@ -12,10 +12,11 @@ class CADRE_Optimization(Assembly):
 
         npts = 1
         #add SNOPT driver
-        #self.add("driver", pyopt_driver.pyOptDriver())
-        #self.driver.optimizer = "SNOPT"
+        self.add("driver", pyopt_driver.pyOptDriver())
+        self.driver.optimizer = "SNOPT"
+        self.driver.options = {'Major optimality tolerance' : 1e-8}
 
-        self.add("driver", CONMINdriver())
+        #self.add("driver", CONMINdriver())
 
         # Raw data to load
         solar_raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
@@ -47,7 +48,7 @@ class CADRE_Optimization(Assembly):
             self.get(aname).set("LD", LDs[i])
             self.get(aname).set("r_e2b_I0", r_e2b_I0s[i])
 
-            """
+            
             # add parameters to driver
             for k in xrange(12):
                 print "adding parameter: CP_Isetpt",k
@@ -80,19 +81,19 @@ class CADRE_Optimization(Assembly):
             constr = ''.join(["pt",str(i),".ConS1 <= 0"])
             self.driver.add_constraint(constr)
 
-            constr = ''.join(["pt",str(i),".BatterySOC.SOC[0] = pt",
-                              str(i),".BatterySOC.SOC[-1]"])
-            self.driver.add_constraint(constr)
-            """
-        """
+            constr = ''.join(["pt",str(i),".SOC[0] = pt",
+                              str(i),".SOC[-1]"])
+            #self.driver.add_constraint(constr)
+            
+        
         #add rest of parameters to driver
         for i in xrange(7):
             print "adding constraint: Cellinstd",i
             for k in xrange(12):
-                param = [''.join(["pt",str(j),".cellInstd[",str(i),
-                "][",str(k),"]"]) for j in xrange(npts)]
+                param = [''.join(["pt",str(j),".cellInstd[(",str(i),
+                ",",str(k),")]"]) for j in xrange(npts)]
                 self.driver.add_parameter(param, low=0, high=1)
-        """
+        
         finangles = ["pt"+str(i)+".finAngle" for i in xrange(npts)]
         antangles = ["pt"+str(i)+".antAngle" for i in xrange(npts)]
         self.driver.add_parameter(finangles, low=0, high=np.pi/2.)
@@ -103,5 +104,10 @@ class CADRE_Optimization(Assembly):
         self.driver.add_objective(obj)
 
 if __name__ == "__main__":
-    a = CADRE_Optimization(1500)
+    import time
+    a = CADRE_Optimization(500)
+    a.driver.iprint = 2
+    print a.pt0.Data[0,-1]
+    t = time.time()
     a.run()
+    print a.pt0.Data[0,-1], time.time() - t
