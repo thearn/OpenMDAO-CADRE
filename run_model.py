@@ -4,6 +4,7 @@ import numpy as np
 
 from openmdao.lib.drivers.api import CONMINdriver
 from openmdao.main.api import Assembly, set_as_top
+from pyopt_driver import pyopt_driver
 
 from CADRE.CADRE_assembly import CADRE
 
@@ -14,7 +15,7 @@ comm_raw = (10**(comm_rawGdata/10.0)).reshape((361,361), order='F')
 power_raw = np.genfromtxt('CADRE/data/Power/curve.dat')
 
 
-n = 50
+n = 100
 m = 20
 
 # Initialize analysis points
@@ -40,9 +41,11 @@ model.cadre.set("LD", LDs[0])
 model.cadre.set("r_e2b_I0", r_e2b_I0s[0])
 model.cadre.set("CP_P_comm", np.random.random((m,))+0.5)
 
-model.add('driver', CONMINdriver())
-model.driver.iprint = 2
-
+#model.add('driver', CONMINdriver())
+#model.driver.iprint = 2
+model.add("driver", pyopt_driver.pyOptDriver())
+model.driver.optimizer = "SNOPT"
+model.driver.options = {'Major optimality tolerance' : 1e-8}
 
 # add parameters to driver
 for k in xrange(12):
@@ -81,14 +84,14 @@ finangles = "cadre.finAngle"
 antangles = "cadre.antAngle"
 model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
 model.driver.add_parameter(antangles, low=0, high=np.pi)
-model.driver.conmin_diff = False
+#model.driver.conmin_diff = False
 
 #add objective
 obj = "cadre.Data[0, -1]"
 model.driver.add_objective(obj)
 
 model.run()
-
+print 'answer', model.cadre.Data[0, -1]
 
 
 #for item in sorted(model.driver.workflow.get_interior_edges()):

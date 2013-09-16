@@ -61,10 +61,10 @@ class BsplineParameters(Component):
 
     def apply_derivT(self, arg, result):
 
-        if 'P_comm' in arg:
+        if 'P_comm' in arg and 'CP_P_comm' in result:
             result['CP_P_comm'] += self.BT.dot(arg['P_comm'])
-        if 'Gamma' in arg:
+        if 'Gamma' in arg and 'CP_gamma' in result:
             result['CP_gamma'] += self.BT.dot(arg['Gamma'])
-        if 'Isetpt' in arg:
+        if 'Isetpt' in arg and 'CP_Isetpt' in result:
             for k in range(12):
                 result['CP_Isetpt'][k, :] += self.BT.dot(arg['Isetpt'][k, :])
