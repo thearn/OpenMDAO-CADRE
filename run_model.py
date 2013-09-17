@@ -3,10 +3,28 @@ import sys
 import numpy as np
 
 from openmdao.lib.drivers.api import CONMINdriver
-from openmdao.main.api import Assembly, set_as_top
+from openmdao.main.api import Assembly, set_as_top, Component
+from openmdao.lib.datatypes.api import Array, Float
 from pyopt_driver import pyopt_driver
 
 from CADRE.CADRE_assembly import CADRE
+
+class Dummy(Component):
+    
+    x = Array(iotype='in')
+    y = Float(iotype='out')
+    
+    def execute(self):
+        self.y = self.x[0, -1]
+        
+    def linearize(self):
+        pass
+    
+    def provideJ(self):
+        J = np.zeros((1, np.prod(self.x.shape)))
+        J[0, -1] = 1.0
+        
+        return ('x',), ('y',), J
 
 solar_raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
 solar_raw2 = np.loadtxt("CADRE/data/Solar/Area_all.txt")
@@ -15,7 +33,7 @@ comm_raw = (10**(comm_rawGdata/10.0)).reshape((361,361), order='F')
 power_raw = np.genfromtxt('CADRE/data/Power/curve.dat')
 
 
-n = 100
+n = 60
 m = 20
 
 # Initialize analysis points
@@ -73,7 +91,7 @@ model.driver.add_constraint(constr)
 constr = ''.join(["cadre.ConS1 <= 0"])
 model.driver.add_constraint(constr)
 
-#constr = ''.join(["cadre.BatterySOC.SOC[0] = cadre.BatterySOC.SOC[-1]"])
+#constr = ''.join(["cadre.SOC = cadre.SOC[-1]"])
 #model.driver.add_constraint(constr)
 
 param = ''.join(["cadre.iSOC[0]"])
@@ -87,16 +105,59 @@ model.driver.add_parameter(antangles, low=0, high=np.pi)
 #model.driver.conmin_diff = False
 
 #add objective
-obj = "cadre.Data[0, -1]"
+#obj = "cadre.Data[0, -1]"
+model.add('dumb', Dummy())
+model.connect('cadre.Data', 'dumb.x')
+model.driver.workflow.add(['cadre', 'dumb'])
+obj = "-dumb.y"
 model.driver.add_objective(obj)
 
 model.run()
-print 'answer', model.cadre.Data[0, -1]
+print 'answer', model.cadre.Data[0, -1], model.dumb.y
 
 
-#for item in sorted(model.driver.workflow.get_interior_edges()):
-#    print item
-#inputs = ['Comm_AntRotation.antAngle']#, 'Solar_ExposedArea.finAngle'
-#inputs =  ['BsplineParameters.CP_P_comm']
-#outputs =  ['Comm_DataDownloaded.Data']
-#model.cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
+
+#inputs =  ['Comm_BitRate.P_comm', 'Comm_BitRate.gain', 'Comm_BitRate.GSdist', 'Comm_BitRate.CommLOS']
+#inputs = [('BsplineParameters.CP_Isetpt')]
+inputs = ['BsplineParameters.CP_Isetpt', 'BsplineParameters.CP_gamma', 'BsplineParameters.CP_P_comm']
+#inputs = ['cadre.CP_Isetpt']
+inputs2 = ['cadre.CP_Isetpt', 'cadre.CP_gamma', 'cadre.CP_P_comm']
+outputs =  ['Comm_DataDownloaded.Data']
+#outputs2 = ['cadre.Data']
+#outputs2 = ['dumb.y']
+outputs2 = None
+
+
+model.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=None, outputs=outputs2,
+                                        mode='adjoint')
+print J.shape
+print J[0, :]
+print '\n'
+
+model.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=inputs2, outputs=outputs2,
+                                        mode='adjoint')
+print J.shape
+print J[0, :]
+print '\n'
+
+model.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=inputs2, outputs=outputs2,
+                                        fd=True)
+print J.shape
+print J[0, :]
+print '-------\n'
+
+#model.cadre.driver.workflow.config_changed()
+#J = model.cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs,
+                                              #mode='adjoint')
+#print J.shape
+#print J[-1, :]
+#print '\n'
+#model.cadre.driver.workflow.config_changed()
+#J = model.cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs,
+                                              #fd=True)
+#print J.shape
+#print J[-1, :]
+

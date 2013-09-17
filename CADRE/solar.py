@@ -124,25 +124,32 @@ class Solar_ExposedArea(Component):
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
-        for c in range(7):
-            if 'finAngle' in arg:
-                result['exposedArea'][c, :, :] += \
-                    self.Jfin[:, c, :].T*arg['finAngle']
-            if 'azimuth' in arg:
-                result['exposedArea'][c, :, :] += \
-                    self.Jaz[:, c, :].T*arg['azimuth']
-            if 'elevation' in arg:
-                result['exposedArea'][c, :, :] += \
-                    self.Jel[:, c, :].T*arg['elevation']
+        if 'exposedArea' in result:
+            for c in range(7):
+                if 'finAngle' in arg:
+                    result['exposedArea'][c, :, :] += \
+                        self.Jfin[:, c, :].T*arg['finAngle']
+                if 'azimuth' in arg:
+                    result['exposedArea'][c, :, :] += \
+                        self.Jaz[:, c, :].T*arg['azimuth']
+                if 'elevation' in arg:
+                    result['exposedArea'][c, :, :] += \
+                        self.Jel[:, c, :].T*arg['elevation']
 
     def apply_derivT(self, arg, result):
         """ Matrix-vector product with the transpose of the Jacobian. """
 
         if 'exposedArea' in arg:
             for c in range(7):
-                result['finAngle'] += \
-                    np.sum(self.Jfin[:, c, :].T*arg['exposedArea'][c, :, :])
-                result['azimuth'] += \
-                    np.sum(self.Jaz[:, c, :].T*arg['exposedArea'][c, :, :], 0)
-                result['elevation'] += \
-                    np.sum(self.Jel[:, c, :].T*arg['exposedArea'][c, :, :], 0)
+                
+                if 'finAngle' in result:
+                    result['finAngle'] += \
+                        np.sum(self.Jfin[:, c, :].T*arg['exposedArea'][c, :, :])
+                    
+                if 'azimuth' in result:
+                    result['azimuth'] += \
+                        np.sum(self.Jaz[:, c, :].T*arg['exposedArea'][c, :, :], 0)
+                    
+                if 'elevation' in result:
+                    result['elevation'] += \
+                        np.sum(self.Jel[:, c, :].T*arg['exposedArea'][c, :, :], 0)
