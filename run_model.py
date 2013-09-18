@@ -33,7 +33,7 @@ comm_raw = (10**(comm_rawGdata/10.0)).reshape((361,361), order='F')
 power_raw = np.genfromtxt('CADRE/data/Power/curve.dat')
 
 
-n = 60
+n = 20
 m = 20
 
 # Initialize analysis points
@@ -67,14 +67,14 @@ model.driver.options = {'Major optimality tolerance' : 1e-8}
 
 # add parameters to driver
 for k in xrange(12):
-    for j in xrange(m):
+    for j in xrange(2):
         param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
                          str(j), ")]"])
         model.driver.add_parameter(param, low=0, high=0.4)
-for k in xrange(m):
+for k in xrange(2):
     param = ''.join(["cadre.CP_gamma[",str(k),"]"])
     model.driver.add_parameter(param, low=0, high=np.pi/2.)
-for k in xrange(m):
+for k in xrange(2):
     param = ''.join(["cadre.CP_P_comm[",str(k),"]"])
     model.driver.add_parameter(param, low=0.1, high=25.)
 
@@ -128,6 +128,7 @@ outputs =  ['Comm_DataDownloaded.Data']
 outputs2 = None
 
 
+model.driver.clear_constraints()
 model.driver.workflow.config_changed()
 J = model.driver.workflow.calc_gradient(inputs=None, outputs=outputs2,
                                         mode='adjoint')
