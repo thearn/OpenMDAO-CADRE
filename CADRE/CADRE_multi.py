@@ -10,11 +10,12 @@ class CADRE_Optimization(Assembly):
     def __init__(self, n=1500, m=300):
         super(CADRE_Optimization, self).__init__()
 
-        npts = 1
+        npts = 2
         #add SNOPT driver
         self.add("driver", pyopt_driver.pyOptDriver())
         self.driver.optimizer = "SNOPT"
-        self.driver.options = {'Major optimality tolerance' : 1e-8}
+        self.driver.options = {'Major optimality tolerance' : 1e-8,
+                                'Iterations limit' : 2000000}
 
         #self.add("driver", CONMINdriver())
 
@@ -63,7 +64,7 @@ class CADRE_Optimization(Assembly):
             for k in xrange(m):
                 print "adding parameter: CP_comm",k
                 param = ''.join(["pt",str(i),".CP_P_comm[",str(k),"]"])
-                self.driver.add_parameter(param, low=0.1, high=25.)
+                self.driver.add_parameter(param, low=0.0, high=25.)
 
             param = ''.join(["pt",str(i),".iSOC[0]"])
             self.driver.add_parameter(param, low=0.2, high=1.)
@@ -105,9 +106,16 @@ class CADRE_Optimization(Assembly):
 
 if __name__ == "__main__":
     import time
-    a = CADRE_Optimization(500)
+    a = CADRE_Optimization(50)
     a.driver.iprint = 2
     print a.pt0.Data[0,-1]
     t = time.time()
     a.run()
     print a.pt0.Data[0,-1], time.time() - t
+
+    # Data downloaded for each design pt (pkl file):
+    #[5066.3720823070635, 5384.7361694638694, 4209.5489047612755, 6067.161589929754, 4760.663169148871, 5403.4000465009376]
+    #Total:
+    #30891.8819621
+
+

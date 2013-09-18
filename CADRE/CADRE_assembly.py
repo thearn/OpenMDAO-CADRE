@@ -47,18 +47,18 @@ class CADRE(Assembly):
         # Design parameters
         self.add('CP_Isetpt', Array(0.2*np.ones((12, self.m)), size=(12, self.m), dtype=float,
                                     iotype='in'))
-        self.add('CP_gamma', Array(np.ones((self.m,)), size=(self.m,), dtype=float,
+        self.add('CP_gamma', Array(np.pi/4 * np.ones((self.m,)), size=(self.m,), dtype=float,
                                    iotype='in'))
-        self.add('CP_P_comm', Array(np.ones((self.m,)), size=(self.m,), dtype=float,
+        self.add('CP_P_comm', Array(0.1*np.ones((self.m,)), size=(self.m,), dtype=float,
                                     iotype='in'))
         self.add('iSOC',
-            Array([1.0], shape=(1, ), dtype=np.float,
+            Array([0.5], shape=(1, ), dtype=np.float,
                 iotype="in", desc="initial state of charge")
         )
         self.add("cellInstd", Array(np.ones((7, 12)), size=(7, 12), dtype=np.float,
             iotype="in", desc="Cell/Radiator indication", low=0, high=1)
         )
-        self.add("finAngle", Float(0., iotype="in", copy=None))
+        self.add("finAngle", Float(np.pi/4., iotype="in", copy=None))
         self.add("antAngle", Float(0., iotype="in", copy=None))
 
         # State parameters (?)
