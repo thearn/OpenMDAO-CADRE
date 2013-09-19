@@ -66,54 +66,56 @@ model.driver.optimizer = "SNOPT"
 model.driver.options = {'Major optimality tolerance' : 1e-8}
 
 # add parameters to driver
-for k in xrange(12):
-    for j in xrange(2):
-        param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
-                         str(j), ")]"])
-        model.driver.add_parameter(param, low=0, high=0.4)
-for k in xrange(2):
+#for k in xrange(12):
+    #for j in xrange(2):
+        #param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
+                         #str(j), ")]"])
+        #model.driver.add_parameter(param, low=0, high=0.4)
+for k in xrange(8):
     param = ''.join(["cadre.CP_gamma[",str(k),"]"])
     model.driver.add_parameter(param, low=0, high=np.pi/2.)
-for k in xrange(2):
-    param = ''.join(["cadre.CP_P_comm[",str(k),"]"])
-    model.driver.add_parameter(param, low=0.1, high=25.)
+#for k in xrange(2):
+    #param = ''.join(["cadre.CP_P_comm[",str(k),"]"])
+    #model.driver.add_parameter(param, low=0.1, high=25.)
 
 # add battery constraints
 constr = ''.join(["cadre.ConCh <= 0"])
 model.driver.add_constraint(constr)
 
-constr = ''.join(["cadre.ConDs <= 0"])
-model.driver.add_constraint(constr)
+#constr = ''.join(["cadre.ConDs <= 0"])
+#model.driver.add_constraint(constr)
 
-constr = ''.join(["cadre.ConS0 <= 0"])
-model.driver.add_constraint(constr)
+#constr = ''.join(["cadre.ConS0 <= 0"])
+#model.driver.add_constraint(constr)
 
-constr = ''.join(["cadre.ConS1 <= 0"])
-model.driver.add_constraint(constr)
+#constr = ''.join(["cadre.ConS1 <= 0"])
+#model.driver.add_constraint(constr)
 
 #constr = ''.join(["cadre.SOC = cadre.SOC[-1]"])
 #model.driver.add_constraint(constr)
 
-param = ''.join(["cadre.iSOC[0]"])
-model.driver.add_parameter(param, low=0.2, high=1.)
+#param = ''.join(["cadre.iSOC[0]"])
+#model.driver.add_parameter(param, low=0.2, high=1.)
 
 
-finangles = "cadre.finAngle"
-antangles = "cadre.antAngle"
-model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
-model.driver.add_parameter(antangles, low=0, high=np.pi)
+#finangles = "cadre.finAngle"
+#antangles = "cadre.antAngle"
+#model.driver.add_parameter(finangles, low=0, high=np.pi/2.)
+#model.driver.add_parameter(antangles, low=0, high=np.pi)
 #model.driver.conmin_diff = False
 
 #add objective
-#obj = "cadre.Data[0, -1]"
-model.add('dumb', Dummy())
-model.connect('cadre.Data', 'dumb.x')
-model.driver.workflow.add(['cadre', 'dumb'])
-obj = "-dumb.y"
+obj = "-cadre.Data[0, -1]"
+model.driver.workflow.add(['cadre'])
+#model.add('dumb', Dummy())
+#model.connect('cadre.Data', 'dumb.x')
+#model.driver.workflow.add(['cadre', 'dumb'])
+#obj = "-dumb.y"
+
 model.driver.add_objective(obj)
 
 model.run()
-print 'answer', model.cadre.Data[0, -1], model.dumb.y
+print 'answer', model.cadre.Data[0, -1]#, model.dumb.y
 
 
 
@@ -121,7 +123,7 @@ print 'answer', model.cadre.Data[0, -1], model.dumb.y
 #inputs = [('BsplineParameters.CP_Isetpt')]
 inputs = ['BsplineParameters.CP_Isetpt', 'BsplineParameters.CP_gamma', 'BsplineParameters.CP_P_comm']
 #inputs = ['cadre.CP_Isetpt']
-inputs2 = ['cadre.CP_Isetpt', 'cadre.CP_gamma', 'cadre.CP_P_comm']
+inputs2 = ['cadre.CP_gamma']
 outputs =  ['Comm_DataDownloaded.Data']
 #outputs2 = ['cadre.Data']
 #outputs2 = ['dumb.y']
@@ -130,13 +132,15 @@ outputs2 = None
 
 model.driver.clear_constraints()
 model.driver.workflow.config_changed()
-J = model.driver.workflow.calc_gradient(inputs=None, outputs=outputs2,
+model.cadre.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=None, outputs=None,
                                         mode='adjoint')
 print J.shape
 print J[0, :]
 print '\n'
 
 model.driver.workflow.config_changed()
+model.cadre.driver.workflow.config_changed()
 J = model.driver.workflow.calc_gradient(inputs=inputs2, outputs=outputs2,
                                         mode='adjoint')
 print J.shape
