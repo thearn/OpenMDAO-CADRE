@@ -276,6 +276,10 @@ class RK4(Component):
             if name not in arg:
                 continue
 
+            # take advantage of fact that arg is often pretty sparse
+            if len(np.nonzero(arg[name])[0]) == 0:
+                continue
+            
             # Collapse incoming a*b*...*c*n down to (ab...c)*n
             var = self.get(name)
             shape = var.shape
@@ -295,6 +299,10 @@ class RK4(Component):
             if name not in arg:
                 continue
 
+            # take advantage of fact that arg is often pretty sparse
+            if len(np.nonzero(arg[name])[0]) == 0:
+                continue
+            
             ext_var = getattr(self, name)
             if len(ext_var) > 1:
                 arg[name] = arg[name].flatten()
@@ -343,7 +351,12 @@ class RK4(Component):
         if self.state_var in arg:
 
             argsv = arg[self.state_var].T
-
+            argsum = np.zeros(argsv.shape)
+            
+            # Calculate these once, and use for every output
+            for k in xrange(n_time-1):
+                argsum[k, :] = np.sum(argsv[k+1:, :], 0)
+                
             # Time-varying inputs
             for name in self.external_vars:
 
@@ -355,9 +368,15 @@ class RK4(Component):
                 ext_length = np.prod(ext_var.shape)/n_time
                 result[name] = np.zeros((ext_length, n_time))
                 for k in xrange(n_time-1):
-                    argsum = np.sum(argsv[k+1:, :], 0)
-                    Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
-                    result[name][:, k] += Jsub.dot(argsum)
+                    
+                    # argsum is often sparse, so check it first
+                    if len(np.nonzero(argsum[k, :])[0]) > 0:
+                        Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
+                        result[name][:, k] += Jsub.dot(argsum[k, :])
+                        
+                # Experimental attempt at tensor dot
+                #Jsub = self.Jx[:, i_ext:i_ext+ext_length, :]
+                #result[name] += np.tensordot(Jsub, argsum, axes = ([2], [0]))
 
             # Time-invariant inputs
             for name in self.fixed_external_vars:
@@ -370,9 +389,11 @@ class RK4(Component):
                 ext_length = np.prod(ext_var.shape)
                 result[name] = np.zeros((ext_length))
                 for k in xrange(n_time-1):
-                    argsum = np.sum(argsv[k+1:, :], 0)
-                    Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
-                    result[name] += Jsub.dot(argsum)
+                    
+                    # argsum is often sparse, so check it first
+                    if len(np.nonzero(argsum[k, :])[0]) > 0:
+                        Jsub = self.Jx[k+1, i_ext:i_ext+ext_length, :]
+                        result[name] += Jsub.dot(argsum[k, :])
 
         for k, v in result.iteritems():
             ext_var = getattr(self, k)
