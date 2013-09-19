@@ -107,14 +107,14 @@ cadre = set_as_top(Assembly())
 #inputs = ['comp.w_B']
 #outputs = ['comp.wdot_B']
 
-#cadre.add('comp', Solar_ExposedArea(NTIME))
-#cadre.comp.finAngle = .15
-#shape = cadre.comp.azimuth.shape
-#cadre.comp.azimuth = np.random.random(shape)
-#shape = cadre.comp.elevation.shape
-#cadre.comp.elevation = np.random.random(shape)
-#inputs = ['comp.finAngle', 'comp.azimuth', 'comp.elevation']
-#outputs = ['comp.exposedArea']
+cadre.add('comp', Solar_ExposedArea(NTIME))
+cadre.comp.finAngle = .15
+shape = cadre.comp.azimuth.shape
+cadre.comp.azimuth = np.random.random(shape)
+shape = cadre.comp.elevation.shape
+cadre.comp.elevation = np.random.random(shape)
+inputs = ['comp.finAngle', 'comp.azimuth', 'comp.elevation']
+outputs = ['comp.exposedArea']
 
 #cadre.add('comp', ThermalTemperature(NTIME))
 #shape = cadre.comp.exposedArea.shape
@@ -131,14 +131,14 @@ cadre = set_as_top(Assembly())
 ##inputs = ['ThermalTemperature.cellInstd']
 #outputs = ['comp.temperature']
 
-cadre.add('comp', Comm_DataDownloaded(NTIME))
-shape = cadre.comp.Dr.shape
-cadre.comp.Dr = np.random.random(shape)
-shape = cadre.comp.Data0.shape
-cadre.comp.Data0 = np.random.random(shape)
-inputs = ['comp.Dr']
-outputs = ['comp.Data']
-state0 = ['Data0']
+#cadre.add('comp', Comm_DataDownloaded(NTIME))
+#shape = cadre.comp.Dr.shape
+#cadre.comp.Dr = np.random.random(shape)
+#shape = cadre.comp.Data0.shape
+#cadre.comp.Data0 = np.random.random(shape)
+#inputs = ['comp.Dr']
+#outputs = ['comp.Data']
+#state0 = ['Data0']
 
 
 cadre.driver.workflow.add('comp')
@@ -148,7 +148,7 @@ cadre.run()
 #    print cadre.get(name)
 
 #cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs)
-#cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
+cadre.driver.workflow.check_gradient(inputs=inputs, outputs=outputs, adjoint=True)
 
 
 
