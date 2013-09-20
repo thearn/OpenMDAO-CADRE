@@ -23,7 +23,7 @@ from CADRE.thermal_temperature import ThermalTemperature
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 
 
-NTIME = 1500
+NTIME = 20
 
 cadre = set_as_top(Assembly())
 
@@ -43,18 +43,18 @@ cadre = set_as_top(Assembly())
 #inputs = ['comp.T_RW']
 #outputs = ['comp.w_RW']
 
-#cadre.add('comp', ThermalTemperature(NTIME))
-#shape = cadre.comp.exposedArea.shape
-#cadre.comp.exposedArea = np.random.random(shape)
-#shape = cadre.comp.cellInstd.shape
-#cadre.comp.cellInstd = np.random.random(shape)
-#shape = cadre.comp.LOS.shape
-#cadre.comp.LOS = np.random.random(shape)
-#shape = cadre.comp.P_comm.shape
-#cadre.comp.P_comm = np.random.random(shape)
-#inputs = ['comp.exposedArea', 'comp.cellInstd',
-          #'comp.LOS', 'comp.P_comm']
-#outputs = ['comp.temperature']
+cadre.add('comp', ThermalTemperature(NTIME))
+shape = cadre.comp.exposedArea.shape
+cadre.comp.exposedArea = np.random.random(shape)
+shape = cadre.comp.cellInstd.shape
+cadre.comp.cellInstd = np.random.random(shape)
+shape = cadre.comp.LOS.shape
+cadre.comp.LOS = np.random.random(shape)
+shape = cadre.comp.P_comm.shape
+cadre.comp.P_comm = np.random.random(shape)
+inputs = ['comp.exposedArea', 'comp.cellInstd',
+          'comp.LOS', 'comp.P_comm']
+outputs = ['comp.temperature']
 
 #cadre.add('comp', Solar_ExposedArea(NTIME))
 #cadre.comp.finAngle = .15
@@ -95,11 +95,11 @@ cadre = set_as_top(Assembly())
 #outputs = ['r_b2g_B']
 #state0 = []
 
-cadre.add('comp', Comm_VectorSpherical(NTIME))
-shape = cadre.comp.r_b2g_A.shape
-cadre.comp.r_b2g_A = np.ones(shape)
-inputs = ['comp.r_b2g_A']
-outputs = ['azimuthGS', 'elevationGS']
+#cadre.add('comp', Comm_VectorSpherical(NTIME))
+#shape = cadre.comp.r_b2g_A.shape
+#cadre.comp.r_b2g_A = np.ones(shape)
+#inputs = ['comp.r_b2g_A']
+#outputs = ['azimuthGS', 'elevationGS']
 
 # --------------------------------------------------
 
@@ -108,10 +108,10 @@ cadre.comp.h = .01
 from time import time
 tzero = time()
 cadre.comp.execute()
-for i in range(25):
-    cadre.comp.execute()
+for i in range(1):
+    #cadre.comp.execute()
     #cadre.comp.linearize()
-    #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs)
+    cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, mode='forward')
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, mode='adjoint')
     #cadre.driver.workflow.calc_gradient(inputs=inputs, outputs=outputs, fd=True)
 print "Execution time", time()-tzero
