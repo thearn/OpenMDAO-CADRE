@@ -142,6 +142,10 @@ class Solar_ExposedArea(Component):
         if 'exposedArea' in arg:
             for c in range(7):
                 
+                # incoming arg is often sparse, so check it first
+                if len(np.nonzero(arg['exposedArea'][c, :, :])[0]) == 0:
+                    continue
+                
                 if 'finAngle' in result:
                     result['finAngle'] += \
                         np.sum(self.Jfin[:, c, :].T*arg['exposedArea'][c, :, :])
