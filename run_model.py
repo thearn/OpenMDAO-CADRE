@@ -68,10 +68,10 @@ model.driver.options = {'Major optimality tolerance' : 1e-8}
 # add parameters to driver
 #for k in xrange(12):
     #for j in xrange(2):
-        #param = ''.join(["cadre.CP_Isetpt[(", str(k), ", ",
-                         #str(j), ")]"])
+        #param = ''.join(["cadre.CP_Isetpt[", str(k), ", ",
+                         #str(j), "]"])
         #model.driver.add_parameter(param, low=0, high=0.4)
-for k in xrange(8):
+for k in xrange(2):
     param = ''.join(["cadre.CP_gamma[",str(k),"]"])
     model.driver.add_parameter(param, low=0, high=np.pi/2.)
 #for k in xrange(2):
@@ -79,8 +79,8 @@ for k in xrange(8):
     #model.driver.add_parameter(param, low=0.1, high=25.)
 
 # add battery constraints
-constr = ''.join(["cadre.ConCh <= 0"])
-model.driver.add_constraint(constr)
+#constr = ''.join(["cadre.ConCh <= 0"])
+#model.driver.add_constraint(constr)
 
 #constr = ''.join(["cadre.ConDs <= 0"])
 #model.driver.add_constraint(constr)
@@ -91,8 +91,9 @@ model.driver.add_constraint(constr)
 #constr = ''.join(["cadre.ConS1 <= 0"])
 #model.driver.add_constraint(constr)
 
-#constr = ''.join(["cadre.SOC = cadre.SOC[-1]"])
-#model.driver.add_constraint(constr)
+constr = ''.join(["cadre.SOC[0][0] = cadre.SOC[0][-1]"])
+#constr = ''.join(["cadre.SOC[0][0] <10000"])
+model.driver.add_constraint(constr)
 
 #param = ''.join(["cadre.iSOC[0]"])
 #model.driver.add_parameter(param, low=0.2, high=1.)
@@ -105,7 +106,7 @@ model.driver.add_constraint(constr)
 #model.driver.conmin_diff = False
 
 #add objective
-obj = "-cadre.Data[0, -1]"
+obj = "-cadre.Data[0][-1]"
 model.driver.workflow.add(['cadre'])
 #model.add('dumb', Dummy())
 #model.connect('cadre.Data', 'dumb.x')
@@ -121,13 +122,15 @@ print 'answer', model.cadre.Data[0, -1]#, model.dumb.y
 
 #inputs =  ['Comm_BitRate.P_comm', 'Comm_BitRate.gain', 'Comm_BitRate.GSdist', 'Comm_BitRate.CommLOS']
 #inputs = [('BsplineParameters.CP_Isetpt')]
-inputs = ['BsplineParameters.CP_Isetpt', 'BsplineParameters.CP_gamma', 'BsplineParameters.CP_P_comm']
+#inputs = ['BsplineParameters.CP_Isetpt', 'BsplineParameters.CP_gamma', 'BsplineParameters.CP_P_comm']
 #inputs = ['cadre.CP_Isetpt']
+#inputs2 = ['cadre.CP_gamma']
 inputs2 = ['cadre.CP_gamma']
-outputs =  ['Comm_DataDownloaded.Data']
+#outputs =  ['Comm_DataDownloaded.Data']
+outputs2 =  ['cadre.SOC[0][0]', 'cadre.SOC[0][-1]']
 #outputs2 = ['cadre.Data']
 #outputs2 = ['dumb.y']
-outputs2 = None
+#outputs2 = None
 
 
 model.driver.clear_constraints()
@@ -136,22 +139,42 @@ model.cadre.driver.workflow.config_changed()
 J = model.driver.workflow.calc_gradient(inputs=None, outputs=None,
                                         mode='adjoint')
 print J.shape
-print J[0, :]
+print J#[0, :]
 print '\n'
+
+model.driver.clear_constraints()
+model.driver.workflow.config_changed()
+model.cadre.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=None, outputs=None,
+                                        mode='forward')
+print J.shape
+print J#[0, :]
+print '\n'
+
+model.driver.clear_constraints()
+model.driver.workflow.config_changed()
+model.cadre.driver.workflow.config_changed()
+J = model.driver.workflow.calc_gradient(inputs=None, outputs=None,
+                                        mode='adjoint')
+print J.shape
+print J#[0, :]
+print '\n'
+
 
 model.driver.workflow.config_changed()
 model.cadre.driver.workflow.config_changed()
 J = model.driver.workflow.calc_gradient(inputs=inputs2, outputs=outputs2,
-                                        mode='adjoint')
+                                        fd=True)
+
 print J.shape
-print J[0, :]
+print J#[0, :]
 print '\n'
 
 model.driver.workflow.config_changed()
 J = model.driver.workflow.calc_gradient(inputs=inputs2, outputs=outputs2,
                                         fd=True)
 print J.shape
-print J[0, :]
+print J#[0, :]
 print '-------\n'
 
 #model.cadre.driver.workflow.config_changed()
