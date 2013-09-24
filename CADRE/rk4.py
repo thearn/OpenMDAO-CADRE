@@ -235,6 +235,8 @@ class RK4(Component):
         self.JT = self.J.transpose()
         self.Minv = scipy.sparse.linalg.splu(self.J).solve
 
+
+
     def apply_deriv(self, arg, result):
         """ Matrix-vector product with the Jacobian. """
 
@@ -246,6 +248,34 @@ class RK4(Component):
             result[svar] += result_ext
         else:
             result[svar] = result_ext
+
+
+    def applyMinv(self, arg, result): 
+        res1 = dict([(self.reverse_name_map[k], v) \
+                     for k, v in result.iteritems()])
+        state = self.state_var
+
+        if state in arg: 
+            flat_y = arg[state].reshape((self.n_states*self.n))
+            result["y"] = self.Minv(flat_y).reshape((self.n_states, self.n))
+
+        res1 = dict([(self.name_map[k],v) for k, v in res1.iteritems()])
+        return res1
+
+
+    def applyMinvT(self, arg, result): 
+        """Apply derivatives with respect to state variables."""
+
+        res1 = dict([(self.reverse_name_map[k], v) \
+                     for k, v in result.iteritems()])
+
+        if self.state_var in arg:
+            flat_y = arg[self.state_var].flatten()
+            res1['y'] = self.Minv(flat_y,'T').reshape((self.n_states, self.n))
+
+        res1 =  dict([(self.name_map[k], v) \
+                      for k, v in res1.iteritems()])
+        return res1
 
 
     def _applyJint(self, arg, result):
