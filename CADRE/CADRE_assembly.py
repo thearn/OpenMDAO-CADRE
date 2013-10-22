@@ -1,35 +1,38 @@
 
 import numpy as np
 
-from openmdao.main.api import Assembly
+from openmdao.main.api import Assembly, Component
 from openmdao.main.datatypes.api import Float, Array, Int
 
 from attitude import Attitude_Angular, Attitude_AngularRates, Attitude_Attitude, \
-     Attitude_Roll, Attitude_RotationMtx, \
-     Attitude_RotationMtxRates, Attitude_Sideslip, Attitude_Torque
+    Attitude_Roll, Attitude_RotationMtx, \
+    Attitude_RotationMtxRates, Attitude_Sideslip, Attitude_Torque
 from battery import BatteryConstraints, BatteryPower, BatterySOC
 from parameters import BsplineParameters
 from comm import Comm_AntRotation, Comm_AntRotationMtx, Comm_BitRate, \
-     Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
-     Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
-     Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
+    Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
+    Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
+    Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
 from orbit import Orbit_Initial, Orbit_Dynamics
 from reactionwheel import ReactionWheel_Motor, ReactionWheel_Power, \
-     ReactionWheel_Torque, ReactionWheel_Dynamics
+    ReactionWheel_Torque, ReactionWheel_Dynamics
 from solar import Solar_ExposedArea
 from sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, Sun_PositionSpherical
 from thermal_temperature import ThermalTemperature
 from power import Power_CellVoltage, Power_SolarPower, Power_Total
 
-#rk4 components:
+# rk4 components:
 #Comm_DataDownloaded, BatterySOC, ThermalTemperature, Orbit_Dynamics
+import time
+
 
 class CADRE(Assembly):
+
     """ OpenMDAO implementation of the CADRE model
     """
-    
+
     def __init__(self, n, m, solar_raw1, solar_raw2, comm_raw, power_raw):
-        
+
         super(CADRE, self).__init__()
 
         # Analysis parameters
@@ -39,26 +42,30 @@ class CADRE(Assembly):
                             dtype=np.float, iotype="in"))
         self.add('t1', Float(0., iotype='in'))
         self.add('t2', Float(43200., iotype='in'))
-        h = (self.t2 - self.t1)/(self.n - 1)
+        h = (self.t2 - self.t1) / (self.n - 1)
         self.add("h", Float(h, iotype="in", copy=None))
-        
-        self.t = np.array(range(0, n))*h
+
+        self.t = np.array(range(0, n)) * h
 
         # Design parameters
-        self.add('CP_Isetpt', Array(0.2*np.ones((12, self.m)), size=(12, self.m), dtype=float,
-                                    iotype='in'))
-        self.add('CP_gamma', Array(np.pi/4 * np.ones((self.m,)), size=(self.m,), dtype=float,
-                                   iotype='in'))
-        self.add('CP_P_comm', Array(0.1*np.ones((self.m,)), size=(self.m,), dtype=float,
-                                    iotype='in'))
+        self.add(
+            'CP_Isetpt', Array(0.2 * np.ones((12, self.m)), size=(12, self.m), dtype=float,
+                               iotype='in'))
+        self.add(
+            'CP_gamma', Array(np.pi / 4 * np.ones((self.m,)), size=(self.m,), dtype=float,
+                              iotype='in'))
+        self.add(
+            'CP_P_comm', Array(0.1 * np.ones((self.m,)), size=(self.m,), dtype=float,
+                               iotype='in'))
         self.add('iSOC',
-            Array([0.5], shape=(1, ), dtype=np.float,
-                iotype="in", desc="initial state of charge")
+                 Array([0.5], shape=(1, ), dtype=np.float,
+                       iotype="in", desc="initial state of charge")
+                 )
+        self.add(
+            "cellInstd", Array(np.ones((7, 12)), size=(7, 12), dtype=np.float,
+                               iotype="in", desc="Cell/Radiator indication", low=0, high=1)
         )
-        self.add("cellInstd", Array(np.ones((7, 12)), size=(7, 12), dtype=np.float,
-            iotype="in", desc="Cell/Radiator indication", low=0, high=1)
-        )
-        self.add("finAngle", Float(np.pi/4., iotype="in", copy=None))
+        self.add("finAngle", Float(np.pi / 4., iotype="in", copy=None))
         self.add("antAngle", Float(0., iotype="in", copy=None))
 
         # State parameters (?)
@@ -68,7 +75,7 @@ class CADRE(Assembly):
         self.add("alt", Float(0.256, iotype="in"))
 
         self.add('r_e2b_I0', Array(np.zeros((6,)), size=(6,), iotype="in",
-            dtype=np.float))
+                                   dtype=np.float))
 
         # B-spline Parameters
         self.add("BsplineParameters", BsplineParameters(n, m))
@@ -99,7 +106,7 @@ class CADRE(Assembly):
         self.add("Attitude_Torque", Attitude_Torque(n))
         self.driver.workflow.add("Attitude_Torque")
 
-        ## Battery components
+        # Battery components
         self.add("BatteryConstraints", BatteryConstraints(n))
         self.driver.workflow.add("BatteryConstraints")
         self.create_passthrough("BatteryConstraints.ConCh")
@@ -126,7 +133,7 @@ class CADRE(Assembly):
 
         self.add("Comm_DataDownloaded", Comm_DataDownloaded(n))
         self.driver.workflow.add("Comm_DataDownloaded")
-        #self.create_passthrough("Comm_DataDownloaded.Data_Final")
+        # self.create_passthrough("Comm_DataDownloaded.Data_Final")
         self.create_passthrough("Comm_DataDownloaded.Data")
 
         self.add("Comm_Distance", Comm_Distance(n))
@@ -214,6 +221,10 @@ class CADRE(Assembly):
         self.add("ThermalTemperature", ThermalTemperature(n))
         self.driver.workflow.add("ThermalTemperature")
 
+        #self.add("debug", debug())
+        #self.debug.force_execute = True
+        # self.driver.workflow.add("debug")
+
         self.make_connections()
 
     def get_unconnected_inputs(self):
@@ -233,7 +244,7 @@ class CADRE(Assembly):
                     unconnected_inputs.append(fullname)
         return unconnected_inputs
 
-    def print_set_vals(self,setvals=None, printvals=None, tval=None):
+    def print_set_vals(self, setvals=None, printvals=None, tval=None):
         vals = []
         defaults = ['itername', 'force_execute', 'directory', 'exec_count',
                     'derivative_exec_count', 'fixed_external_vars']
@@ -250,9 +261,9 @@ class CADRE(Assembly):
                 if setvals:
                     try:
                         val = comp.set(var, setvals[var])
-                        print "setting:",comp,var
+                        print "setting:", comp, var
                     except (RuntimeError, KeyError):
-                        #print "error setting inp:",var, compname
+                        # print "error setting inp:",var, compname
                         pass
                 val = comp.get(var)
                 data = [var, val, compname, "in"]
@@ -272,7 +283,7 @@ class CADRE(Assembly):
                 if v[0] == printvals:
                     print v[0], v[2], v[3]
                     if isinstance(tval, np.ndarray):
-                        print "rel error:", np.linalg.norm(tval - v[1])/np.linalg.norm(tval)
+                        print "rel error:", np.linalg.norm(tval - v[1]) / np.linalg.norm(tval)
                     else:
                         print "rel error", np.abs(tval - v[1]) / tval
             else:
@@ -288,7 +299,7 @@ class CADRE(Assembly):
         long as the variable name does not exist as an output to more than
         a single component (so excludes default outputs)
         """
-        
+
         inputs, outputs = {}, {}
         for compname in self.list_components():
 
@@ -314,7 +325,7 @@ class CADRE(Assembly):
 
         for var in assym_level:
             outputs[var] = ['']
-            
+
         for varname in outputs.keys():
             comps = outputs[varname]
             if len(comps) > 1:
@@ -328,13 +339,28 @@ class CADRE(Assembly):
                 for compname in inputs[varname]:
                     topath = '.'.join([compname, varname])
                     self.connect(frompath, topath)
-                    print "Connecting", frompath, "to", topath, "..."
+                    # print "Connecting", frompath, "to", topath, "..."
         """
         print
         print "Unconnected inputs:"
         for i in self.get_unconnected_inputs():
             print i
         """
+
+
+class debug(Component):
+
+    Data = Array(iotype='in')
+
+    t = Float(time.time(), iotype="out")
+
+    def execute(self):
+        print "indiv. data:", self.Data[0, -1], time.time() - self.t
+        self.t = time.time()
+
+
+    # def provideJ(self):
+    #    return ['Data'], ['t'], np.array([0.])
 
 if __name__ == "__main__":
     a = CADRE()
