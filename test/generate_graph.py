@@ -27,12 +27,6 @@ for node in graph.nodes_iter():
 for node in remove:
     graph.remove_node(node)
 
-# graph.remove_node("@xin")
-# graph.remove_node("@xout")
-# graph.remove_node("@bin")
-# graph.remove_node("@bout")
-# graph.remove_node("driver")
-
 ag = nx.to_agraph(graph)
 ag.layout('dot')
 ag.draw('design.pdf')
