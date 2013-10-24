@@ -93,7 +93,7 @@ class CADRE_Optimization(Assembly):
             self.driver.add_constraint(constr)
 
         # add rest of parameters to driver
-        """
+
         print "adding constraint: Cellinstd..."
         for i in xrange(7):
 
@@ -101,7 +101,7 @@ class CADRE_Optimization(Assembly):
                 param = [''.join(["pt", str(j), ".cellInstd[", str(i),
                                   "][", str(k), "]"]) for j in xrange(npts)]
                 self.driver.add_parameter(param, low=0, high=1)
-        """
+
         finangles = ["pt" + str(i) + ".finAngle" for i in xrange(npts)]
         antangles = ["pt" + str(i) + ".antAngle" for i in xrange(npts)]
         self.driver.add_parameter(finangles, low=0, high=np.pi / 2.)
@@ -115,19 +115,13 @@ class CADRE_Optimization(Assembly):
 if __name__ == "__main__":
     from openmdao.lib.casehandlers.api import CSVCaseRecorder
     # Data downloaded for each design pt (pkl file):
-    #[5066.3720823070635, 5384.7361694638694, 4209.5489047612755, 6067.161589929754, 4760.663169148871, 5403.4000465009376]
+    #[5066.3720823070635, 5384.7361694638694, 4209.5489047612755,
+    # 6067.161589929754, 4760.663169148871, 5403.4000465009376]
     # Total:
     # 30891.8819621 ~  -3.0E+04
 
-    # object: 'meritfunction'
-
     a = CADRE_Optimization(n=200, m=100)
     a.driver.iprint = 2
-    print a.pt0.Data[0][-1]
-    # a.run()
-    # print a.pt0.Data[0][-1]
-    # print "antangle", a.pt0.finAngle
-    # print "SOC check", a.pt0.SOC[0][0], a.pt0.SOC[0][-1]
 
     a.driver.recorders = [CSVCaseRecorder(filename='converge.csv')]
     printvars = []
@@ -135,5 +129,3 @@ if __name__ == "__main__":
         printvars += ["pt" + str(i) + ".Data" for i in xrange(6)]
     a.driver.printvars = printvars
     a.run()
-
-    # print a.pt0.Data[0][-1] + a.pt1.Data[0][-1]
