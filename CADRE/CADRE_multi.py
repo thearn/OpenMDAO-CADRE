@@ -62,15 +62,16 @@ class CADRE_Optimization(Assembly):
                 for j in xrange(m):
                     param = ''.join(["pt", str(i), ".CP_Isetpt[", str(k), "][",
                                      str(j), "]"])
-                    self.driver.add_parameter(param, low=0, high=0.4)
+                    self.driver.add_parameter(param, low=0.2, high=0.4)
             print "adding parameter: CP_gamma.."
             for k in xrange(m):
                 param = ''.join(["pt", str(i), ".CP_gamma[", str(k), "]"])
-                self.driver.add_parameter(param, low=0, high=np.pi / 2.)
+                self.driver.add_parameter(param, low=np.pi / 4,
+                                          high=np.pi / 2.)
             print "adding parameter: CP_comm.."
             for k in xrange(m):
                 param = ''.join(["pt", str(i), ".CP_P_comm[", str(k), "]"])
-                self.driver.add_parameter(param, low=0.0, high=25.)
+                self.driver.add_parameter(param, low=0.1, high=25.)
 
             param = ''.join(["pt", str(i), ".iSOC[0]"])
             self.driver.add_parameter(param, low=0.2, high=1.)
@@ -96,7 +97,6 @@ class CADRE_Optimization(Assembly):
 
         print "adding constraint: Cellinstd..."
         for i in xrange(7):
-
             for k in xrange(12):
                 param = [''.join(["pt", str(j), ".cellInstd[", str(i),
                                   "][", str(k), "]"]) for j in xrange(npts)]
@@ -105,7 +105,7 @@ class CADRE_Optimization(Assembly):
         finangles = ["pt" + str(i) + ".finAngle" for i in xrange(npts)]
         antangles = ["pt" + str(i) + ".antAngle" for i in xrange(npts)]
         self.driver.add_parameter(finangles, low=0, high=np.pi / 2.)
-        self.driver.add_parameter(antangles, low=0, high=np.pi)
+        self.driver.add_parameter(antangles, low=-np.pi / 4, high=np.pi / 4)
 
         # add objective
         obj = ''.join([''.join(["-pt", str(i), ".Data[0][-1]"])
@@ -120,12 +120,10 @@ if __name__ == "__main__":
     # Total:
     # 30891.8819621 ~  -3.0E+04
 
-    a = CADRE_Optimization(n=200, m=100)
-    a.driver.iprint = 2
-
+    a = CADRE_Optimization(n=300, m=100)
     a.driver.recorders = [CSVCaseRecorder(filename='converge.csv')]
     printvars = []
     for var in ['Data', 'ConCh', 'ConDs', 'ConS0', 'ConS1', 'SOC']:
-        printvars += ["pt" + str(i) + ".Data" for i in xrange(6)]
+        printvars += ["pt" + str(i) + ".Data" for i in xrange(0)]
     a.driver.printvars = printvars
     a.run()
