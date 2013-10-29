@@ -81,7 +81,7 @@ class Testcase_CADRE(unittest.TestCase):
         wflow.config_changed()
         Jn = wflow.calc_gradient(inputs=inputs,
                                  outputs=outputs,
-                                 fd=True)
+                                 mode="fd")
         #print Jn
 
         # Analytic forward
@@ -613,7 +613,7 @@ class Testcase_CADRE(unittest.TestCase):
             val = self.model.comp.get(item)
             shape1 = val.shape
             self.model.comp.set(item, np.random.random(shape1))
-                
+
         self.run_model()
         self.compare_derivatives(inputs, outputs)
 
