@@ -120,7 +120,7 @@ if __name__ == "__main__":
     # Total:
     # 30891.8819621 ~  -3.0E+04
 
-    a = CADRE_Optimization(n=300, m=100)
+    a = CADRE_Optimization(n=1500, m=300)
     a.driver.recorders = [CSVCaseRecorder(filename='converge.csv')]
     printvars = []
     for var in ['Data', 'ConCh', 'ConDs', 'ConS0', 'ConS1', 'SOC']:
