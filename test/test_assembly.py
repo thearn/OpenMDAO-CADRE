@@ -73,9 +73,6 @@ class Testcase_CADRE_assembly(unittest.TestCase):
 
     """ Tests the CADRE assembly. """
 
-    def __init__(self, *args, **kwargs):
-        super(Testcase_CADRE_assembly, self).__init__(*args, **kwargs)
-
     def compare(self, compname, inputs, outputs):
         for var in inputs + outputs:
             computed = assembly.get('.'.join([compname, var]))
