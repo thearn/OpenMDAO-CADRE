@@ -9,21 +9,21 @@ from openmdao.main.api import Assembly, set_as_top
 from openmdao.util.testutil import assert_rel_error
 
 from CADRE.attitude import Attitude_Angular, Attitude_AngularRates, \
-     Attitude_Attitude, Attitude_Roll, Attitude_RotationMtx, \
-     Attitude_RotationMtxRates, Attitude_Sideslip, Attitude_Torque
+    Attitude_Attitude, Attitude_Roll, Attitude_RotationMtx, \
+    Attitude_RotationMtxRates, Attitude_Sideslip, Attitude_Torque
 from CADRE.battery import BatteryConstraints, BatteryPower, BatterySOC
 from CADRE.comm import Comm_AntRotation, Comm_AntRotationMtx, Comm_BitRate, \
-     Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
-     Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
-     Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
+    Comm_DataDownloaded, Comm_Distance, Comm_EarthsSpin, Comm_EarthsSpinMtx, \
+    Comm_GainPattern, Comm_GSposEarth, Comm_GSposECI, Comm_LOS, Comm_VectorAnt, \
+    Comm_VectorBody, Comm_VectorECI, Comm_VectorSpherical
 from CADRE.orbit import Orbit_Initial, Orbit_Dynamics
 from CADRE.parameters import BsplineParameters
 from CADRE.power import Power_CellVoltage, Power_SolarPower, Power_Total
 from CADRE.reactionwheel import ReactionWheel_Motor, ReactionWheel_Power, \
-     ReactionWheel_Torque, ReactionWheel_Dynamics
+    ReactionWheel_Torque, ReactionWheel_Dynamics
 from CADRE.solar import Solar_ExposedArea
 from CADRE.sun import Sun_LOS, Sun_PositionBody, Sun_PositionECI, \
-     Sun_PositionSpherical
+    Sun_PositionSpherical
 from CADRE.thermal_temperature import ThermalTemperature
 
 
@@ -32,7 +32,9 @@ NTIME = 5
 # Ignore the numerical warnings from performing the rel error calc.
 warnings.simplefilter("ignore")
 
+
 class Testcase_CADRE(unittest.TestCase):
+
     """ Test run/step/stop aspects of a simple workflow. """
 
     def setUp(self):
@@ -55,7 +57,7 @@ class Testcase_CADRE(unittest.TestCase):
 
         #data = pickle.load(open("data1346.pkl", 'rb'))
 
-        for item in inputs+state0:
+        for item in inputs + state0:
             val = self.model.comp.get(item)
             #key = "%d:%s" % (NTIME, item)
             if hasattr(val, 'shape'):
@@ -82,7 +84,7 @@ class Testcase_CADRE(unittest.TestCase):
         Jn = wflow.calc_gradient(inputs=inputs,
                                  outputs=outputs,
                                  mode="fd")
-        #print Jn
+        # print Jn
 
         # Analytic forward
         wflow.config_changed()
@@ -90,10 +92,10 @@ class Testcase_CADRE(unittest.TestCase):
                                  outputs=outputs,
                                  mode='forward')
 
-        #print Jf
+        # print Jf
 
         if rel_error:
-            diff = np.nan_to_num(abs(Jf - Jn)/Jn)
+            diff = np.nan_to_num(abs(Jf - Jn) / Jn)
         else:
             diff = abs(Jf - Jn)
 
@@ -105,10 +107,10 @@ class Testcase_CADRE(unittest.TestCase):
                                  outputs=outputs,
                                  mode='adjoint')
 
-        #print Ja
+        # print Ja
 
         if rel_error:
-            diff = np.nan_to_num(abs(Ja - Jn)/Jn)
+            diff = np.nan_to_num(abs(Ja - Jn) / Jn)
         else:
             diff = abs(Ja - Jn)
 
@@ -160,7 +162,7 @@ class Testcase_CADRE(unittest.TestCase):
         shape = self.model.comp.P_comm.shape
         self.model.comp.P_comm = np.ones(shape)
         shape = self.model.comp.GSdist.shape
-        self.model.comp.GSdist = np.random.random(shape)*1e3
+        self.model.comp.GSdist = np.random.random(shape) * 1e3
 
         self.run_model()
 
@@ -442,7 +444,7 @@ class Testcase_CADRE(unittest.TestCase):
         self.compare_derivatives(inputs, outputs)
 
     def test_Power_CellVoltage(self):
-        #fix
+        # fix
         compname = 'Power_CellVoltage'
         inputs = ['LOS', 'temperature', 'exposedArea', 'Isetpt']
         outputs = ['V_sol']
@@ -454,13 +456,13 @@ class Testcase_CADRE(unittest.TestCase):
         self.model.comp.temperature = np.ones(shape)
 
         shape = self.model.comp.temperature.shape
-        self.model.comp.temperature = np.random.random(shape)*40 + 240
+        self.model.comp.temperature = np.random.random(shape) * 40 + 240
 
         shape = self.model.comp.exposedArea.shape
-        self.model.comp.exposedArea = np.random.random(shape)*1e-4
+        self.model.comp.exposedArea = np.random.random(shape) * 1e-4
 
         shape = self.model.comp.Isetpt.shape
-        self.model.comp.Isetpt = np.random.random(shape)*1e-2
+        self.model.comp.Isetpt = np.random.random(shape) * 1e-2
 
         self.run_model()
         self.compare_derivatives(inputs, outputs, rel_error=True)
@@ -505,14 +507,14 @@ class Testcase_CADRE(unittest.TestCase):
         outputs = ['w_RW']
 
         # keep these at zeros
-        state0 = [] #['w_RW0']
+        state0 = []  # ['w_RW0']
 
         self.setup(compname, inputs, state0)
 
         shape = self.model.comp.w_B.shape
-        self.model.comp.w_B = np.random.random(shape)*1e-4
+        self.model.comp.w_B = np.random.random(shape) * 1e-4
         shape = self.model.comp.T_RW.shape
-        self.model.comp.T_RW = np.random.random(shape)*1e-9
+        self.model.comp.T_RW = np.random.random(shape) * 1e-9
 
         self.run_model()
         self.compare_derivatives(inputs, outputs)
@@ -583,7 +585,7 @@ class Testcase_CADRE(unittest.TestCase):
         #state0 = ['r_e2b_I0']
 
         #self.setup(compname, inputs, state0)
-        #self.run_model()
+        # self.run_model()
         #self.compare_derivatives(inputs, outputs)
 
     def test_Orbit_Initial(self):
@@ -604,7 +606,6 @@ class Testcase_CADRE(unittest.TestCase):
         inputs = ['CP_P_comm', 'CP_gamma', 'CP_Isetpt']
         outputs = ['P_comm', 'Gamma', 'Isetpt']
         state0 = []
-
 
         self.model.add('comp', BsplineParameters(NTIME, 5))
         self.model.driver.workflow.add('comp')
