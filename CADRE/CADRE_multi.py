@@ -20,6 +20,11 @@ class CADRE_Optimization(Assembly):
 
         #self.add("driver", CONMINdriver())
 
+        # specify ground station
+        self.add("lon", Float(-83.7264, iotype="in"))
+        self.add("lat", Float(42.2708, iotype="in"))
+        self.add("alt", Float(0.256, iotype="in"))
+
         # Raw data to load
         solar_raw1 = np.genfromtxt('CADRE/data/Solar/Area10.txt')
         solar_raw2 = np.loadtxt("CADRE/data/Solar/Area_all.txt")
@@ -29,6 +34,7 @@ class CADRE_Optimization(Assembly):
         power_raw = np.genfromtxt('CADRE/data/Power/curve.dat')
 
         # Initialize analysis points
+
         LDs = [5233.5, 5294.5, 5356.5, 5417.5, 5478.5, 5537.5]
 
         r_e2b_I0s = [np.array([4505.29362, -3402.16069, -3943.74582,
@@ -53,6 +59,9 @@ class CADRE_Optimization(Assembly):
             aname = ''.join(["pt", str(i)])
             self.add(aname, CADRE(n, m, solar_raw1, solar_raw2,
                                   comm_raw, power_raw))
+            self.connect("alt", "pt%s.alt" % str(i))
+            self.connect("lon", "pt%s.lon" % str(i))
+            self.connect("lat", "pt%s.lat" % str(i))
             self.get(aname).set("LD", LDs[i])
             self.get(aname).set("r_e2b_I0", r_e2b_I0s[i])
 
